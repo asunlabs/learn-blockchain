@@ -1,4 +1,6 @@
-[![wakatime](https://wakatime.com/badge/user/e56daee8-7aae-4b0e-814c-b6bb7f5f841c/project/cc1be56d-d095-4fdc-afae-f8dc39e06621.svg)](https://wakatime.com/badge/user/e56daee8-7aae-4b0e-814c-b6bb7f5f841c/project/cc1be56d-d095-4fdc-afae-f8dc39e06621)
+|Before migration|After migration|
+|:--------------:|:-------------:|
+|[![wakatime](https://wakatime.com/badge/user/e56daee8-7aae-4b0e-814c-b6bb7f5f841c/project/cc1be56d-d095-4fdc-afae-f8dc39e06621.svg)](https://wakatime.com/badge/user/e56daee8-7aae-4b0e-814c-b6bb7f5f841c/project/cc1be56d-d095-4fdc-afae-f8dc39e06621)|[![wakatime](https://wakatime.com/badge/user/e56daee8-7aae-4b0e-814c-b6bb7f5f841c/project/5aa078d7-b752-460f-96b0-0b0ce180efbc.svg)](https://wakatime.com/badge/user/e56daee8-7aae-4b0e-814c-b6bb7f5f841c/project/5aa078d7-b752-460f-96b0-0b0ce180efbc)|
 
 # @asunlabs/learn-blockchain
 
