@@ -509,6 +509,134 @@ npx hardhat balance --account 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266
 
 > You can import the config DSL explicitly when defining your tasks, and receive the HRE explicitly as an argument to your actions. You can read more about this in Creating your own tasks.
 
+## Forking other networks
+
+> You can start an instance of Hardhat Network that forks mainnet. This means that it will simulate having the same state as mainnet, but it will work as a local development network. That way you can interact with deployed protocols and test complex interactions locally.
+
+> To use this feature you need to connect to an archive node. We recommend using Alchemy.
+
+### Forking from mainnet
+
+> The easiest way to try this feature is to start a node from the command line:
+
+```sh
+npx hardhat node --fork https://eth-mainnet.alchemyapi.io/v2/<key>
+```
+
+> You can also configure Hardhat Network to always do this:
+
+```ts
+networks: {
+  hardhat: {
+    forking: {
+      url: "https://eth-mainnet.alchemyapi.io/v2/<key>",
+    }
+  }
+}
+```
+
+> (Note that you'll need to replace the <key> component of the URL with your personal Alchemy API key.) By accessing any state that exists on mainnet, Hardhat Network will pull the data and expose it transparently as if it was available locally.
+
+### Pinning a block
+
+> Hardhat Network will by default fork from the latest mainnet block. While this might be practical depending on the context, to set up a test suite that depends on forking we recommend forking from a specific block number.
+
+> There are two reasons for this:
+
+> 1. The state your tests run against may change between runs. This could cause your tests or scripts to behave differently.
+
+> 1. Pinning enables caching. Every time data is fetched from mainnet, Hardhat Network caches it on disk to speed up future access. If you don't pin the block, there's going to be new data with each new block and the cache won't be useful. We measured up to 20x speed improvements with block pinning.
+
+> You will need access to a node with archival data for this to work. This is why we recommend Alchemy, since their free plans include archival data.
+
+> To pin the block number:
+
+```js
+networks: {
+  hardhat: {
+    forking: {
+      url: "https://eth-mainnet.alchemyapi.io/v2/<key>",
+      blockNumber: 14390000
+    }
+  }
+}
+```
+
+> If you are using the node task, you can also specify a block number with the --fork-block-number flag:
+
+```sh
+npx hardhat node --fork https://eth-mainnet.alchemyapi.io/v2/<key> --fork-block-number 14390000
+```
+
+> You can add extra HTTP headers that will be used in any request made to the forked node. One reason to do this is for authorization: instead of including your credentials in the URL, you can use a bearer token via a custom HTTP header:
+
+```js
+networks: {
+  hardhat: {
+    forking: {
+      url: "https://ethnode.example.com",
+      httpHeaders: {
+        "Authorization": "Bearer <key>"
+      }
+    }
+  }
+}
+```
+
+### Impersonating accounts
+
+> Hardhat Network allows you to impersonate any address. This lets you send transactions from that account even if you don't have access to its private key.
+
+> The easiest way to do this is with the ethers.getImpersonatedSigner method, which is added to the ethers object by the hardhat-ethers plugin:
+
+```js
+const impersonatedSigner = await ethers.getImpersonatedSigner("0x1234567890123456789012345678901234567890");
+await impersonatedSigner.sendTransaction(...);
+```
+
+> Alternatively, you can use the impersonateAccount helper and then obtain the signer for that address:
+
+```js
+const helpers = require('@nomicfoundation/hardhat-network-helpers')
+
+const address = '0x1234567890123456789012345678901234567890'
+await helpers.impersonateAccount(address)
+const impersonatedSigner = await ethers.getSigner(address)
+```
+
+### Customizing Hardhat Network's behavior
+
+> Once you've got a local instance of the mainnet chain state, setting that state to the specific needs of your tests is likely the next step. For this, you can use our Hardhat Network Helpers library, which allows you to do things like manipulating the time of the network or modify the balance of an account.
+
+### Resetting the fork
+
+> You can manipulate forking during runtime to reset back to a fresh forked state, fork from another block number or disable forking by calling hardhat_reset:
+
+```js
+await network.provider.request({
+  method: 'hardhat_reset',
+  params: [
+    {
+      forking: {
+        jsonRpcUrl: 'https://eth-mainnet.alchemyapi.io/v2/<key>',
+        blockNumber: 14390000,
+      },
+    },
+  ],
+})
+```
+
+> You can disable forking by passing empty params:
+
+```js
+await network.provider.request({
+  method: 'hardhat_reset',
+  params: [],
+})
+```
+
+> This will reset Hardhat Network, starting a new instance in the state described here.
+
 ## Reference
 
 - https://hardhat.org/
