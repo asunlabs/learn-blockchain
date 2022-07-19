@@ -24,3 +24,10 @@ const stringString = 'jake sung'
 console.log(ethers.utils.parseBytes32String(byteString))
 console.log(ethers.utils.formatBytes32String(stringString))
 console.log(ethers.utils.parseBytes32String(byteString) === stringString ? 'same value: bytes32 and string' : 'conversion failed')
+console.log(ethers.Wallet.createRandom())
+console.log(typeof ethers.Wallet.createRandom())
+console.log(ethers.Wallet.createRandom().address)
+console.log(ethers.Wallet.createRandom()._mnemonic())
+
+// const wallet = new ethers.Wallet()
+console.log(ethers.utils.SigningKey.isSigningKey("Ww"))
