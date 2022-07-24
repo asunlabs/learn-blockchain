@@ -7,7 +7,7 @@ Below you will find some glossary as to Chainlink Oracle.
 - initiator: instructions that tell a chainlink node when/how to start getting external data
 - adapter/task: instructions that tell a chainlink node what to do with data once they receive it => adapters == a list of instructions
 - initiator + adapter = a job in chainlink node. job has its own id.
-- the most common functionality for the job is log initiator.
+- the most common functionality for the job is log initiator combined with HTTP GET, JSON parse, multiply, Fuint256, and FTX adapters.
 
 > Chainlink expands the capabilities of smart contracts by enabling access to real-world data and off-chain computation while maintaining the security and reliability guarantees inherent to blockchain technology.
 
@@ -168,6 +168,212 @@ contract PriceConsumerV3 {
 > You can run your own oracle networks that provide data to smart contracts similar to the AggregatorV3Interface, but first, you should learn how to configure your contracts to pay oracles using LINK tokens.
 
 </details>
+
+## Introduction to Using Any API
+
+> Chainlink enables your contracts to access to any external data source through our decentralized oracle network.
+
+> Whether your contract requires sports results, the latest weather, or any other publicly available data, the Chainlink contract library provides the tools required for your contract to consume it.
+
+### Getting started
+
+> We understand making smart contracts compatible with off-chain data adds to the complexity of building smart contracts. We created a framework with minimal requirements, yet unbounded flexibility, so developers can focus more on the functionality of smart contracts rather than what feeds them.
+
+> Chainlink’s decentralized oracle network provides smart contracts with the ability to push and pull data, facilitating the interoperability between on-chain and off-chain applications.
+
+#### Requesting Off-chain Data
+
+> Outlined below are multiple ways developers can connect smart contracts to off-chain data feeds. Click a request type to learn more about it:
+
+1. HTTP GET Single Word Response
+1. HTTP GET Multi-Variable Responses
+1. HTTP GET Element in Array Response
+1. HTTP GET Large Reponses
+1. Existing Job Request
+
+> Building External Adapters: To learn more about building external adapters and adding them to nodes, refer to the External Adapters documentation. To understand different use cases for using any API, refer to Other Tutorials.
+
+### Follow Chainlink blog/engineering tutorial
+
+- [[See Description] Connect any API to your smart contract | Chainlink Engineering Tutorials](https://www.youtube.com/watch?v=AtHp7me2Yks)
+
+> This video describes how to get data from HTTP GET requests, HTTP POST requests, and a number of other methods into your smart contract. showing you exactly how it plays out on the Ethereum blockchain.
+
+- [Chainlink market](market.link): A node listing service where developers can find job id and oracle address. Independent nodes will post how to connect their chainlink nodes here.
+
+- [APIs, Smart Contracts, and How to Connect Them](https://blog.chain.link/apis-smart-contracts-and-how-to-connect-them/)
+
+> Smart contracts on any blockchain can connect to any API by integrating with Chainlink oracles. We’ve already seen massive growth of API and off-chain data use in Solidity since Chainlink has entered the space as an oracle solution. Now that list is growing rapidly to include Polkadot, Avalanche, Binance Smart Chain, Bitcoin via RSK, and more as all these chains benefit from API access to the external world. Chainlink is well known as the leading framework for DeFi Price Feeds, which currently secures billions in DeFi value. While Chainlink Price Feeds are an important functionality that empowers a multitude of DeFi platforms users know and love, that alone does not revolutionize the capabilities of smart contracts.
+
+> **Chainlink** was designed with a much broader goal in mind: to be **the standard data middleware layer for smart contracts** and unlock the capability for smart contracts to reliably trigger events in the external world. To accomplish this, Chainlink gives Solidity developers and other smart contract developers a framework for interacting with any external API. This guide shows you exactly how to do so today, live on the Ethereum mainnet.
+
+> In about 15 minutes you can have your own externally aware contract deployed on-chain and making API requests. You can learn more about connecting your smart contract at our Introduction to Using Any API page and continue below for a more in-depth analysis of making an HTTP GET request.
+
+> **Chainlink Adapters**: The first concept to cover is Chainlink Adapters. Adapters are the data manipulation functions that every Chainlink node supports by default. Through these adapters, all developers have a standard interface for making data requests and node operators have a standard for serving that data. These adapters include functionality such as HTTP GET, HTTP POST, Compare, Copy, etc. Adapters are your dApp’s connection to the external world’s data.
+
+#### Chainlink Requests
+
+> For your smart contract to interact with these adapters, we need to introduce another element: requests. All contracts that inherit from ChainlinkClient can create a Chainlink.Request struct that allows developers to form a request to a Chainlink node. Submitting this request requires some basic fields such as the address of the node you wish to use as your oracle, the job ID, and the agreed-upon fee. In addition to those default fields, you must add your desired adapter parameters to the request struct like so:
+
+```
+// Set the URL to perform the GET request on
+request.add("get", "https://min-api.cryptocompare.com/data/price?fsym=ETH&tsyms=USD");
+```
+
+### Single Word Response
+
+> This guide explains how to make an HTTP GET request to an external API from a smart contract using Chainlink's Request & Receive Data cycle and receive a single response.
+
+> To consume an API with multiple responses, your contract must import ChainlinkClient. This contract exposes a struct called Chainlink.Request, which your contract should use to build the API request. The request should include the following parameters:
+
+1. Link token address
+1. Oracle address
+1. Job id
+1. Request fee
+1. Task parameters
+1. Callback function signature
+
+> ️ Note on Funding Contracts: Making a GET request will fail unless your deployed contract has enough LINK to pay for it. Learn how to Acquire testnet LINK and Fund your contract.
+
+> Assume that a user wants to call the API above and retrieve only the 24h ETH trading volume from the response.
+
+```solidity
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.7;
+
+import '@chainlink/contracts/src/v0.8/ChainlinkClient.sol';
+import '@chainlink/contracts/src/v0.8/ConfirmedOwner.sol';
+
+/**
+ * Request testnet LINK and ETH here: https://faucets.chain.link/
+ * Find information on LINK Token Contracts and get the latest ETH and LINK faucets here: https://docs.chain.link/docs/link-token-contracts/
+ */
+
+/**
+ * THIS IS AN EXAMPLE CONTRACT WHICH USES HARDCODED VALUES FOR CLARITY.
+ * PLEASE DO NOT USE THIS CODE IN PRODUCTION.
+ */
+contract APIConsumer is ChainlinkClient, ConfirmedOwner {
+    using Chainlink for Chainlink.Request;
+
+    uint256 public volume;
+    bytes32 private jobId;
+    uint256 private fee;
+
+    event RequestVolume(bytes32 indexed requestId, uint256 volume);
+
+    /**
+     * @notice Initialize the link token and target oracle
+     *
+     * Rinkeby Testnet details:
+     * Link Token: 0x01BE23585060835E02B77ef475b0Cc51aA1e0709
+     * Oracle: 0xf3FBB7f3391F62C8fe53f89B41dFC8159EE9653f (Chainlink DevRel)
+     * jobId: ca98366cc7314957b8c012c72f05aeeb
+     *
+     */
+    constructor() ConfirmedOwner(msg.sender) {
+        setChainlinkToken(0x01BE23585060835E02B77ef475b0Cc51aA1e0709);
+        setChainlinkOracle(0xf3FBB7f3391F62C8fe53f89B41dFC8159EE9653f);
+        jobId = 'ca98366cc7314957b8c012c72f05aeeb';
+        fee = (1 * LINK_DIVISIBILITY) / 10; // 0,1 * 10**18 (Varies by network and job)
+    }
+
+    /**
+     * Create a Chainlink request to retrieve API response, find the target
+     * data, then multiply by 1000000000000000000 (to remove decimal places from data).
+     */
+    function requestVolumeData() public returns (bytes32 requestId) {
+        Chainlink.Request memory req = buildChainlinkRequest(jobId, address(this), this.fulfill.selector);
+
+        // Set the URL to perform the GET request on
+        req.add('get', 'https://min-api.cryptocompare.com/data/pricemultifull?fsyms=ETH&tsyms=USD');
+
+        // Set the path to find the desired data in the API response, where the response format is:
+        // {"RAW":
+        //   {"ETH":
+        //    {"USD":
+        //     {
+        //      "VOLUME24HOUR": xxx.xxx,
+        //     }
+        //    }
+        //   }
+        //  }
+        // request.add("path", "RAW.ETH.USD.VOLUME24HOUR"); // Chainlink nodes prior to 1.0.0 support this format
+        req.add('path', 'RAW,ETH,USD,VOLUME24HOUR'); // Chainlink nodes 1.0.0 and later support this format
+
+        // Multiply the result by 1000000000000000000 to remove decimals
+        int256 timesAmount = 10**18;
+        req.addInt('times', timesAmount);
+
+        // Sends the request
+        return sendChainlinkRequest(req, fee);
+    }
+
+    /**
+     * Receive the response in the form of uint256
+     */
+    function fulfill(bytes32 _requestId, uint256 _volume) public recordChainlinkFulfillment(_requestId) {
+        emit RequestVolume(_requestId, _volume);
+        volume = _volume;
+    }
+
+    /**
+     * Allow withdraw of Link tokens from the contract
+     */
+    function withdrawLink() public onlyOwner {
+        LinkTokenInterface link = LinkTokenInterface(chainlinkTokenAddress());
+        require(link.transfer(msg.sender, link.balanceOf(address(this))), 'Unable to transfer');
+    }
+}
+```
+
+> To use this contract:
+
+1. Open the contract in Remix.
+
+2. Compile and deploy the contract using the Injected Web3 environment. The contract includes all the configuration variables for the Rinkeby testnet. Make sure your wallet is set to use Rinkeby. The constructor sets the following parameters:
+
+- The Chainlink Token address for Rinkeby by calling the setChainlinkToken function.
+- The Oracle contract address for Rinkeby by calling the setChainlinkOracle function.
+- The jobId: A specific job for the oracle node to run. In this case, you must call a job that is configured to call a public API, parse a number from the response and remove any decimals from it. You can find the job spec for the Chainlink node here.
+
+3. Fund your contract with 0.1 LINK. To learn how to send LINK to contracts, read the Fund Your Contracts page.
+
+4. Call the volume function to confirm that the volume state variable is equal to zero.
+
+5. Run the requestVolumeData function. This builds the Chainlink.Request using the correct parameters:
+
+- The req.add("get", "<cryptocompareURL>") request parameter provides the oracle node with the url where to fetch the ETH-USD trading info.
+  The req.add('path', 'RAW,ETH,USD,VOLUME24HOUR') request parameter tells the oracle node where to fetch the 24h ETH volume in the json response. It uses a JSONPath expression with comma(,) delimited string for nested objects. For example: 'RAW,ETH,USD,VOLUME24HOUR'.
+
+- The req.addInt('times', timesAmount) request parameter provides the oracle node with the multiplier timesAmount by which the fetched volume is multiplied. Use this to remove any decimals from the volume.
+
+- The APIConsumer in the example above is flexible enough to call any public API as long as the URL in get, path, and timesAmounnt are correct.
+
+6. After few seconds, call the volume function. You should get a non-zero response.
+
+<details>
+<summary>Response Types</summary>
+
+> Make sure to choose an oracle job that supports the data type that your contract needs to consume. Multiple data types are available such as:
+
+1. uint256 - Unsigned integers
+1. int256 - Signed integers
+1. bool - True or False values
+1. string - String
+1. bytes32 - Strings and byte values. If you need to return a string, use bytes32. Here's one method of converting bytes32 to string. Currently, any return value must fit within 32 bytes. If the value is bigger than that, make multiple requests.
+1. bytes - Arbitrary-length raw byte data
+</details>
+
+### Setting the LINK token address, Oracle, and JobId
+
+> The setChainlinkToken function sets the LINK token address for the network you are deploying to. The setChainlinkOracle function sets a specific Chainlink oracle that a contract makes an API call from. The jobId refers to a specific job for that node to run.
+
+> Each job is unique and returns different types of data. For example, a job that returns a bytes32 variable from an API would have a different jobId than a job that retrieved the same data, but in the form of a uint256 variable.
+
+> Check the [Find Existing Jobs](https://docs.chain.link/docs/listing-services/) page to learn how to find a job suitable to your use case.
+
+> Data provider nodes: Chainlink has facilitated the launch of several oracle data services that allow dApps to access rich data from external data sources through provider-owned nodes. The full list of such provider nodes is available [here](https://docs.chain.link/docs/data-provider-nodes/#data-provider-nodes-list)
 
 ## Random Numbers: Using Chainlink VRF
 
