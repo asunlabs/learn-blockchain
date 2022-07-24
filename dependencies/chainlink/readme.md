@@ -3,7 +3,7 @@
 Below you will find some glossary as to Chainlink Oracle.
 
 - Chainlink oracle is a blockchain middleware.
-- external transaction ===(API call)===> initiator ===(read/write)===> blockhain(on-chain dat)
+- external transaction ===(API call)===> initiator ===(read/write)===> blockhain(on-chain data)
 - initiator: instructions that tell a chainlink node when/how to start getting external data
 - adapter/task: instructions that tell a chainlink node what to do with data once they receive it => adapters == a list of instructions
 - initiator + adapter = a job in chainlink node. job has its own id.
@@ -31,27 +31,91 @@ Below you will find some glossary as to Chainlink Oracle.
 
 > Oracles provide a bridge between the real-world and on-chain smart contracts by **being a source of data that smart contracts can rely on, and act upon**.
 
-> Oracles play a critical role in facilitating the full potential of smart contract utility. Without a reliable connection to real-world conditions, smart contracts cannot effectively serve the real-world.
+> Oracles play a critical role in **facilitating** the full potential of **smart contract utility**. Without a reliable connection to real-world conditions, smart contracts cannot effectively serve the real-world.
 
 ## How do smart contracts use oracles?
 
-> **Oracles are most popularly used with Data Feeds**. DeFi platforms like AAVE and Synthetix use Chainlink data feed oracles to obtain accurate real-time asset prices in their smart contracts.
+> **Oracles are most popularly used with Data Feeds**. DeFi platforms like AAVE and Synthetix use Chainlink data feed oracles **to obtain accurate real-time asset prices** in their smart contracts.
 
-> Chainlink data feeds are sources of data aggregated **from many independent Chainlink node operators**. Each data feed has an on-chain address and functions that enable contracts to read from that address. For example, the ETH / USD feed.
+> Chainlink data feeds are sources of data aggregated **from many independent Chainlink node operators**. **Each data feed has an on-chain address and functions** that enable contracts to read from that address. For example, the ETH/USD feed.
 
 > Smart contracts also use oracles to get other capabilities on-chain:
 
 1. Generate Verifiable Random Numbers (VRF): Use Chainlink **VRF to consume randomness** in your smart contracts.
-1. Call External APIs (Any API): Request & Receive data from any API using the Chainlink contract library.
+1. Call External APIs (Any API): **Request & Receive data from any API** using the Chainlink contract library.
 1. Automate Smart Contract Functions (Keepers): Automating smart contract functions and regular contract maintenance.
 
-## Consuming Data Feeds
+## Introduction to Data Feeds
 
-> When you connect a smart contract to real-world services or off-chain data, you create a hybrid smart contract. For example, you can **use Chainlink Data Feeds to connect your smart contracts to asset pricing data** like the ETH / USD feed. These data feeds use the data aggregated from many independent Chainlink node operators. Each price feed has an on-chain address and functions that enable contracts to read pricing data from that address
+> Chainlink Data Feeds are the quickest way to connect your smart contracts to the real-world data such as asset prices. One use for data feeds is to retrieve the latest pricing data of an asset in a single call and use that data either on-chain in a smart contract or off-chain in another application of your choice.
+
+> If you already have a project started and would like to integrate Chainlink, you can add Chainlink to your existing project by using the chainlink NPM package.
+
+> See the Data Feeds Contract Addresses page for a list of networks and proxy addresses. For important updates regarding the use of Chainlink Price Feeds, users should join the official Chainlink Discord and subscribe to the data-feeds-user-notifications channel: https://discord.gg/Dqy5N9UbsR
+
+### Retrieve the latest asset prices
+
+> Often, smart contracts need to act in real-time on data such as prices of assets. This is especially true in DeFi.
+
+> For example, Synthetix uses Data Feeds to determine prices on their derivatives platform. Lending and borrowing platforms like AAVE use Data Feeds to ensure the total value of the collateral.
+
+> Data Feeds aggregate many data sources and publish them on-chain using a combination of the Decentralized Data Model and Off-Chain Reporting.
+
+### Components of a data feed
+
+- the proxy and aggregator contracts are all on-chain.
+
+- You can call the latestRoundData() function directly on the aggregator, but it is a best practice to use the proxy instead so that changes to the aggregator do not affect your application
+
+> Data Feeds are an example of a decentralized oracle network and include the following components:
+
+> **Consumer**: A consumer is an on-chain or off-chain application that uses Data Feeds. **Consumer contracts use the AggregatorV3Interface to call functions on the proxy contract and retrieve information from the aggregator contract**. For a complete list of functions available in the AggregatorV3Interface, see the Data Feeds API Reference.
+
+> **Proxy contract**: Proxy contracts are on-chain proxies that point to the aggregator for a particular data feed. **Using proxies enables the underlying aggregator to be upgraded** without any service interruption to consuming contracts. Proxy contracts can vary from one data feed to another, but the AggregatorProxy.sol contract on Github is a common example.
+
+> **Aggregator contract**: An aggregator is **a contract that receives periodic data updates from the oracle network**. Aggregators **store** aggregated **data on-chain** so that consumers can retrieve it and act upon it within the same transaction. For a complete list of functions and variables available on most aggregator contracts, see the Data Feeds API Reference.
+
+### Updates to proxy and aggregator contracts
+
+> To accommodate the dynamic nature of off-chain environments, Chainlink Data Feeds are updated from time to time to add new features and capabilities as well as respond to externalities such as token migrations, protocol rebrands, extreme market events, and upstream issues with data or node operations.
+
+> These updates include changes to the aggregator configuration or a complete replacement of the aggregator that the proxy uses. If you consume data feeds through the proxy, your applications can continue to operate during these changes.
+
+> Proxy and aggregator contracts all have an owner address that has permission to change variables and functions. For example, if you read the BTC/USD proxy contract in Etherscan, you can see the owner address. This address is a multi-signature safe (multisig) that you can also inspect.
+
+> If you view the multisig contract in Etherscan using the Read as Proxy feature, you can see the full details of the multisig including the list of addresses that can sign and the number of signers required for the multisig to approve actions on any contracts that it owns.
+
+> The multisig-coordinated upgradability of Chainlink Data Feeds involves time-tested processes that balance collusion-resistance with the flexibility required to implement improvements and swiftly react to external conditions. The approach taken to upgradability will continue to evolve over time to meet user requirements.
+
+### Monitoring Data Feeds
+
+> When you build applications and protocols that depend on data feeds, include monitoring and safeguards to protect against the negative impact of extreme market events, possible malicious activity on third-party venues or contracts, potential delays, and outages.
+
+> Create your own monitoring alerts based on deviations in the answers that data feeds provide. This will notify you when potential issues occur so you can respond to them.
+
+#### Check the latest answer against reasonable limits
+
+> The data feed aggregator includes both minAnswer and maxAnswer values. These variables prevent the aggregator from updating the latestAnswer outside the agreed range of acceptable values, but they do not stop your application from reading the most recent answer.
+
+> Configure your application to detect when the reported answer is close to reaching minAnswer or maxAnswer and issue an alert so you can respond to a potential market event. Separately, configure your application to detect and respond to extreme price volatility or prices that are outside of your acceptable limits.
+
+#### Check the timestamp of the latest answer
+
+> Chainlink Price Feeds do not provide streaming data. Rather, the aggregator updates its latestAnswer when the value deviates beyond a specified threshold or when the heartbeat idle time has passed. You can find the heartbeat and deviation values for each data feed at data.chain.link or in the Contract Addresses lists.
+
+> Your application should track the latestTimestamp variable or use the updatedAt value from the latestRoundData() function to make sure that the latest answer is recent enough for your application to use it. If your application detects that the reported answer is not updated within the heartbeat or within time limits that you determine are acceptable for your application, pause operation or switch to an alternate operation mode while identifying the cause of the delay.
+
+> During periods of low volatility, the heartbeat triggers updates to the latest answer. Some heartbeats are configured to last several hours, so your application should check the timestamp and verify that the latest answer is recent enough for your application.
+
+> To learn more about the heartbeat and deviation threshold, read the Decentralized Data Model page.
+
+### Consuming Data Feeds
+
+> When you connect a smart contract to real-world services or off-chain data, you create a hybrid smart contract. For example, you can **use Chainlink Data Feeds to connect your smart contracts to asset pricing data** like the ETH/USD feed. These data feeds use the data aggregated from many independent Chainlink node operators. Each price feed has an on-chain address and functions that enable contracts to read pricing data from that address
 
 ### Examine the sample contract
 
-> For example, The following code describes a contract that obtains the latest ETH / USD price using the Kovan testnet.
+> For example, The following code describes a contract that obtains the latest ETH/USD price using the Kovan testnet.
 
 ```solidity
 // SPDX-License-Identifier: MIT
@@ -88,42 +152,22 @@ contract PriceConsumerV3 {
 }
 ```
 
-> The import line imports an interface named AggregatorV3Interface. Interfaces define functions without their implementation, which leaves inheriting contracts to define the actual implementation themselves. In this case, AggregatorV3Interface defines that all v3 Aggregators have the function latestRoundData. You can see the complete code for the AggregatorV3Interface on GitHub.
+> The import line imports an interface named AggregatorV3Interface. **Interfaces define functions without their implementation**, which leaves inheriting contracts to define the actual implementation themselves. In this case, AggregatorV3Interface defines that all v3 Aggregators have the function latestRoundData. You can see the complete code for the AggregatorV3Interface on GitHub.
 
-> The constructor() {} initializes an interface object named priceFeed that uses AggregatorV3Interface and connects specifically to a proxy aggregator contract that is already deployed at 0x9326BFA02ADD2366b30bacB125260Af641031331. The interface allows your contract to run functions on that deployed aggregator contract.
+> The **constructor**() {} initializes an interface object named priceFeed that uses AggregatorV3Interface and **connects specifically to a proxy aggregator contract** that is already deployed at **0x9326BFA02ADD2366b30bacB125260Af641031331**. The interface allows your contract to run functions on that deployed aggregator contract.
 
-> The getLatestPrice() function calls your priceFeed object and runs the latestRoundData() function. When you deploy the contract, it initializes the priceFeed object to point to the aggregator at 0x9326BFA02ADD2366b30bacB125260Af641031331, which is the proxy address for the Kovan ETH / USD data feed. Your contract connects to that address and executes the function. The aggregator connects with several oracle nodes and aggregates the pricing data from those nodes. The response from the aggregator includes several variables, but getLatestPrice() returns only the price variable.
+> The getLatestPrice() function calls your priceFeed object and runs the latestRoundData() function. When you deploy the contract, it initializes the priceFeed object to point to the aggregator at 0x9326BFA02ADD2366b30bacB125260Af641031331, which is **the proxy address for the Kovan ETH / USD data feed**.
+
+> **Your contract connects to that address** and executes the function. The aggregator connects with several oracle nodes and aggregates the pricing data from those nodes. **The response from the aggregator includes several variables, but getLatestPrice() returns only the price variable**.
 
 <details>
-<summary>Heads-up</summary>
+<summary>Notice</summary>
 
 > If you have not already configured your MetaMask wallet and funded it with testnet ETH, follow the instructions in the Deploy Your First Smart Contract to set that up. You can get testnet ETH at https://faucets.chain.link/kovan/.
 
+> You can run your own oracle networks that provide data to smart contracts similar to the AggregatorV3Interface, but first, you should learn how to configure your contracts to pay oracles using LINK tokens.
+
 </details>
-
-### Compile, deploy, and run the contract
-
-> Deploy the PriceConsumerV3 smart contract on the Kovan testnet.
-
-1. Open the example contract in Remix. Remix opens and shows the contents of the smart contract.
-
-1. Because the code is already written, you can start the compile step. On the left side of Remix, click the Solidity Compiler tab to view the compiler settings.
-
-1. Use the default compiler settings. Click the Compile PriceConsumerV3.sol button to compile the contract. Remix automatically detects the correct compiler version depending on the pragma that you specify in the contract. You can ignore warnings about unused local variables in this example.
-
-1. On the Deploy tab, select the Injected Web3 environment. This contract specifically requires Web3 because it connects with another contract on the blockchain. Running in a JavaScript VM will not work.
-
-1. Because the example contract has several imports, Remix might select another contract to deploy by default. In the Contract section, select the PriceConsumerV3 contract to make sure that Remix deploys the correct contract.
-
-1. Click Deploy to deploy the contract to the Kovan testnet. MetaMask opens and asks you to confirm payment for deploying the contract. Make sure MetaMask is set to the Kovan network before you accept the transaction. Because these transactions are on the blockchain, they are not reversible.
-
-1. In the MetaMask prompt, click Confirm to approve the transaction and spend your testnet ETH required to deploy the contract.
-
-1. After a few seconds, the transaction completes and your contract appears under the Deployed Contracts list in Remix. Click the contract dropdown to view its variables and functions.
-
-1. Click getLatestPrice to show the latest price from the aggregator contract. The latest price appears just below the button. The returned price is an integer, so it is missing its decimal point.
-
-1. You can run your own oracle networks that provide data to smart contracts similar to the AggregatorV3Interface, but first, you should learn how to configure your contracts to pay oracles using LINK tokens.
 
 ## Random Numbers: Using Chainlink VRF
 
@@ -173,4 +217,5 @@ The contract will have the following functions:
 ## Reference
 
 - [Chainlink official](https://docs.chain.link/)
+- [Introduction to Data Feeds](https://docs.chain.link/docs/using-chainlink-reference-contracts/)
 - [[See Description] Connect any API to your smart contract | Chainlink Engineering Tutorials](https://youtu.be/AtHp7me2Yks)
