@@ -1,3 +1,6 @@
+# dev env
+.vscode
+
 # memo 
 reminder.md
 node_modules/
