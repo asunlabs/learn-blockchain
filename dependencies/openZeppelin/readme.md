@@ -187,12 +187,12 @@ and then load them in your Hardhat config file:
 
 ```js
 // hardhat.config.js
-require("@openzeppelin/hardhat-upgrades");
+require('@openzeppelin/hardhat-upgrades')
 ```
 
 ```ts
 // hardhat.config.ts
-import "@openzeppelin/hardhat-upgrades";
+import '@openzeppelin/hardhat-upgrades'
 ```
 
 For Truffle user,
@@ -208,20 +208,20 @@ For Hardhat user,
 > Hardhat users will be able to write scripts that use the plugin to deploy or upgrade a contract, and manage proxy admin rights.
 
 ```js
-const { ethers, upgrades } = require("hardhat");
+const { ethers, upgrades } = require('hardhat')
 
 async function main() {
   // Deploying
-  const Box = await ethers.getContractFactory("Box");
-  const instance = await upgrades.deployProxy(Box, [42]); // [42]: initializer params
-  await instance.deployed();
+  const Box = await ethers.getContractFactory('Box')
+  const instance = await upgrades.deployProxy(Box, [42]) // [42]: initializer params
+  await instance.deployed()
 
   // Upgrading: should provide proxy address
-  const BoxV2 = await ethers.getContractFactory("BoxV2");
-  const upgraded = await upgrades.upgradeProxy(instance.address, BoxV2);
+  const BoxV2 = await ethers.getContractFactory('BoxV2')
+  const upgraded = await upgrades.upgradeProxy(instance.address, BoxV2)
 }
 
-main();
+main()
 ```
 
 For Truffle user,
@@ -229,15 +229,15 @@ For Truffle user,
 > Truffle users will be able to write migrations that use the plugin to deploy or upgrade a contract, or manage proxy admin rights.
 
 ```js
-const { deployProxy, upgradeProxy } = require("@openzeppelin/truffle-upgrades");
+const { deployProxy, upgradeProxy } = require('@openzeppelin/truffle-upgrades')
 
-const Box = artifacts.require("Box");
-const BoxV2 = artifacts.require("BoxV2");
+const Box = artifacts.require('Box')
+const BoxV2 = artifacts.require('BoxV2')
 
 module.exports = async function (deployer) {
-  const instance = await deployProxy(Box, [42], { deployer });
-  const upgraded = await upgradeProxy(instance.address, BoxV2, { deployer });
-};
+  const instance = await deployProxy(Box, [42], { deployer })
+  const upgraded = await upgradeProxy(instance.address, BoxV2, { deployer })
+}
 ```
 
 > deployProxy does the following:
@@ -260,13 +260,13 @@ module.exports = async function (deployer) {
 > Whether you’re using Hardhat or Truffle, you can use the plugin in your tests to ensure everything works as expected.
 
 ```js
-it("works before and after upgrading", async function () {
-  const instance = await upgrades.deployProxy(Box, [42]);
-  assert.strictEqual(await instance.retrieve(), 42);
+it('works before and after upgrading', async function () {
+  const instance = await upgrades.deployProxy(Box, [42])
+  assert.strictEqual(await instance.retrieve(), 42)
 
-  await upgrades.upgradeProxy(instance.address, BoxV2);
-  assert.strictEqual(await instance.retrieve(), 42);
-});
+  await upgrades.upgradeProxy(instance.address, BoxV2)
+  assert.strictEqual(await instance.retrieve(), 42)
+})
 ```
 
 ### Writing upgradable smart contract
@@ -835,13 +835,62 @@ contract Box is Multicall {
 ```js
 // scripts/foobar.js
 
-const Box = artifacts.require("Box");
-const instance = await Box.new();
+const Box = artifacts.require('Box')
+const instance = await Box.new()
 
-await instance.multicall([
-  instance.contract.methods.foo().encodeABI(),
-  instance.contract.methods.bar().encodeABI(),
-]);
+await instance.multicall([instance.contract.methods.foo().encodeABI(), instance.contract.methods.bar().encodeABI()])
+```
+
+## Using Hooks
+
+> Sometimes, in order to extend a parent contract you will need to override multiple related functions, which leads to code duplication and increased likelihood of bugs.
+
+> For example, consider implementing safe ERC20 transfers in the style of IERC721Receiver. You may think overriding transfer and transferFrom would be enough, but what about \_transfer and \_mint? To prevent you from having to deal with these details, we introduced hooks.
+
+> Hooks are simply functions that are called before or after some action takes place. They provide a centralized point to hook into and extend the original behavior.
+
+> Here’s how you would implement the IERC721Receiver pattern in ERC20, using the \_beforeTokenTransfer hook:
+
+```solidity
+pragma solidity ^0.6.0;
+
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+
+contract ERC20WithSafeTransfer is ERC20 {
+    function _beforeTokenTransfer(address from, address to, uint256 amount)
+        internal virtual override
+    {
+        super._beforeTokenTransfer(from, to, amount);
+
+        require(_validRecipient(to), "ERC20WithSafeTransfer: invalid recipient");
+    }
+
+    function _validRecipient(address to) private view returns (bool) {
+        ...
+    }
+
+    ...
+}
+```
+
+> Using hooks this way leads to cleaner and safer code, without having to rely on a deep understanding of the parent’s internals.
+
+### Rules of Hooks
+
+> There’s a few guidelines you should follow when writing code that uses hooks in order to prevent issues. They are very simple, but do make sure you follow them:
+
+1. Whenever you override a parent’s hook, re-apply the virtual attribute to the hook. That will allow child contracts to add more functionality to the hook.
+
+```solidity
+function _beforeTokenTransfer(address from, address to, uint256 amount)
+        internal virtual override
+```
+
+> Always call the parent’s hook in your override using super. This will make sure all hooks in the inheritance tree are called: contracts like ERC20Pausable rely on this behavior.
+
+```solidity
+        super._beforeTokenTransfer(from, to, amount); // Call parent hook
+
 ```
 
 ## Reference
