@@ -821,8 +821,29 @@ Rollups bundle (or ’roll up’) hundreds of transactions into a single transac
 
 > One of the main benefits of the London upgrade is improving the user's experience when setting transaction fees. For wallets that support the upgrade, instead of explicitly stating how much you are willing to pay to get your transaction through, wallet providers will automatically set a recommended transaction fee (base fee + recommended priority fee) to reduce the amount of complexity burdened onto their users.
 
+## WETH
+
+> Put plainly, wETH is "wrapped ETH" but let's start by introducing the players.
+
+> FIRST, THERE'S ETHER TOKEN: Ether or ETH is the native currency built on the Ethereum blockchain.
+
+> SECOND, THERE ARE ALT TOKENS: When a dApp (decentralized app) is built off of the Ethereum Blockchain it usually implements its own form of Token. Think Augur’s REP Token, or Bancor's BNT Token.
+
+> FINALLY THE ERC-20 STANDARD: ERC-20 is a standard developed after the release of ETH that defines how tokens are transferred and how to keep a consistent record of those transfers among tokens in the Ethereum Network
+
+### WHY YOU NEED WETH
+
+> ETH DOESN’T CONFORM TO ITS OWN ERC-20 STANDARD.
+As mentioned above, ETH was the proto-token of the Ethereum Alt tokens, which means it was built before the ERC-20 standard existed.
+
+> WRAPPING ETH ALLOWS YOU TO TRADE DIRECTLY WITH ALT TOKENS: The reason you need wETH is to be able to trade ETH for other ERC-20 tokens on decentralized platforms like Radar Relay. Because decentralized platforms running on Ethereum use smart contracts to facilitate trades directly between users, every user needs to have the same standardized format for every token they trade. This ensures tokens don’t get lost in translation.
+
+> SO THIS IS AWKWARD...YOU DON'T ACTUALLY WRAP ANYTHING: When you "wrap" ETH, you aren't really wrapping so much as trading via a smart contract for an equal token called wETH. If you want to get plain ETH back you need to "unwrap" it. AKA trade it back for plain ETH.
+
+> HOPEFULLY, THERE'S NO FUTURE FOR WETH: Steps are being taken to update the ETH codebase to make it compliant with its own ERC-20 standards. Weird, we know. Additionally, ERC-20 may be replaced by other standards as problems and solutions arise. There's already a ERC223 in the works.
 
 ## Reference
 
 - [Ethereum.org](https://ethereum.org/en/layer-2/)
 - [Layer 2 - Ethereum for everyone](https://ethereum.org/en/)
+- [WTF IS WETH?](https://weth.io/)

@@ -34,7 +34,7 @@ console.log(ethers.Wallet.createRandom().address)
 console.log(ethers.Wallet.createRandom()._mnemonic())
 
 // const wallet = new ethers.Wallet()
-console.log(ethers.utils.SigningKey.isSigningKey("Ww"))
+console.log(ethers.utils.SigningKey.isSigningKey('Ww'))
 // ============== bytes | string conversion =============== //
 
 // ============== hex | number conversion =============== //

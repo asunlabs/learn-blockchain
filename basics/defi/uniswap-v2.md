@@ -169,6 +169,223 @@ UniswapV2Router02.swapExactTokensForETH(amountIn, amountOutMin, path, msg.sender
 
 ![image](https://user-images.githubusercontent.com/83855174/179534934-5b6208e1-1a08-4c4c-8ce4-93546a6a2520.png)
 
+## Smart contract
+
+### Factory
+
+> Address: UniswapV2Factory is deployed at 0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f on the Ethereum mainnet, and the Ropsten, Rinkeby, Görli, and Kovan testnets. It was built from commit 8160750.
+
+### Events
+
+> PairCreated: token0 is guaranteed to be strictly less than token1 by sort order. The final uint log value will be 1 for the first pair created, 2 for the second, etc. (see allPairs/getPair). Emitted each time a pair is created via createPair.
+
+```solidity
+event PairCreated(address indexed token0, address indexed token1, address pair, uint);
+```
+
+#### Read-only functions
+
+> getPair: Returns the address of the pair for tokenA and tokenB, if it has been created, else address(0) (0x0000000000000000000000000000000000000000).
+
+```solidity
+function getPair(address tokenA, address tokenB) external view returns (address pair);
+```
+
+- tokenA and tokenB are interchangeable.
+- Pair addresses can also be calculated deterministically via the SDK.
+
+> allPairs: Returns the address of the nth pair (0-indexed) created through the factory, or address(0) (0x0000000000000000000000000000000000000000) if not enough pairs have been created yet.
+
+```solidity
+function allPairs(uint) external view returns (address pair);
+```
+
+- Pass 0 for the address of the first pair created, 1 for the second, etc.
+
+> allPairsLength: Returns the total number of pairs created through the factory so far.
+
+```solidity
+function allPairsLength() external view returns (uint);
+```
+
+> feeTo: See Protocol Charge Calculation.
+
+```solidity
+function feeTo() external view returns (address);
+```
+
+> feeToSetter: The address allowed to change feeTo.
+
+```solidity
+function feeToSetter() external view returns (address);
+```
+
+#### State-Changing Functions
+
+> createPair: Creates a pair for tokenA and tokenB if one doesn't exist already.
+
+```solidity
+function createPair(address tokenA, address tokenB) external returns (address pair);
+```
+
+- tokenA and tokenB are interchangeable.
+- Emits PairCreated.
+
+#### Interface
+
+```solidity
+pragma solidity >=0.5.0;
+
+interface IUniswapV2Factory {
+  event PairCreated(address indexed token0, address indexed token1, address pair, uint);
+
+  function getPair(address tokenA, address tokenB) external view returns (address pair);
+  function allPairs(uint) external view returns (address pair);
+  function allPairsLength() external view returns (uint);
+
+  function feeTo() external view returns (address);
+  function feeToSetter() external view returns (address);
+
+  function createPair(address tokenA, address tokenB) external returns (address pair);
+}
+```
+
+You also can find an ABI from dependency like below
+
+```solidity
+import IUniswapV2Factory from '@uniswap/v2-core/build/IUniswapV2Factory.json'
+```
+
+### Pair
+
+> This documentation covers Uniswap-specific functionality. For ERC-20 functionality, see Pair (ERC-20).
+
+> Mint: Emitted each time liquidity tokens are created via mint.
+
+```solidity
+event Mint(address indexed sender, uint amount0, uint amount1);
+```
+
+> Burn: Emitted each time liquidity tokens are destroyed via burn.
+
+```solidity
+event Burn(address indexed sender, uint amount0, uint amount1, address indexed to);
+```
+
+> Swap: Emitted each time a swap occurs via swap.
+
+```solidity
+event Swap(
+  address indexed sender,
+  uint amount0In,
+  uint amount1In,
+  uint amount0Out,
+  uint amount1Out,
+  address indexed to
+);
+```
+
+> Sync: Emitted each time reserves are updated via mint, burn, swap, or sync.
+
+```solidity
+event Sync(uint112 reserve0, uint112 reserve1);
+```
+
+#### Read-only functions
+
+> MINIMUM_LIQUIDITY: Returns 1000 for all pairs. See Minimum Liquidity.
+
+```solidity
+function MINIMUM_LIQUIDITY() external pure returns (uint);
+```
+
+> factory: Returns the factory address.
+
+```solidity
+function factory() external view returns (address);
+```
+
+====== 20220728 done
+https://docs.uniswap.org/protocol/V2/reference/smart-contracts/pair#token0
+
+### Fees
+
+#### Liquidity provider fees
+
+> There is a 0.3% fee for swapping tokens. This fee is split by liquidity providers proportional to their contribution to liquidity reserves.
+
+> Swapping fees are immediately deposited into liquidity reserves. This increases the value of liquidity tokens, functioning as a payout to all liquidity providers proportional to their share of the pool. Fees are collected by burning liquidity tokens to remove a proportional share of the underlying reserves.
+
+> Since fees are added to liquidity pools, the invariant increases at the end of every trade. Within a single transaction, the invariant represents token0_pool / token1_pool at the end of the previous transaction.
+
+#### Protocol fees
+
+> At the moment there are no protocol fees. However, it is possible for a 0.05% fee to be turned on in the future.
+
+#### Protocol Charge Calculation
+
+> In the future, it is possible that a protocol-wide charge of 0.05% per trade will take effect. This represents ⅙th (16.6̅%) of the 0.30% fee. The fee is in effect if feeTo is not address(0) (0x0000000000000000000000000000000000000000), indicating that feeTo is the recipient of the charge.
+
+> This amount would not affect the fee paid by traders, but would affect the amount received by liquidity providers.
+
+> Rather than calculating this charge on swaps, which would significantly increase gas costs for all users, the charge is instead calculated when liquidity is added or removed. See the whitepaper for more details.
+
+### Router02
+
+> Because routers are stateless and do not hold token balances, they can be replaced safely and trustlessly, if necessary. This may happen if more efficient smart contract patterns are discovered, or if additional functionality is desired. For this reason, routers have release numbers, starting at 01. This is currently recommended release, 02.
+
+#### Address
+
+> UniswapV2Router02 is deployed at 0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D on the Ethereum mainnet, and the Ropsten, Rinkeby, Görli, and Kovan testnets. It was built from commit 6961711.
+
+#### Read-only functions
+
+- factory: returns factory address
+
+```solidity
+function factory() external pure returns (address);
+```
+
+- WETH: Returns the canonical WETH address on the Ethereum mainnet, or the Ropsten, Rinkeby, Görli, or Kovan testnets.
+
+```solidity
+function WETH() external pure returns (address);
+```
+
+- quote: Given some asset amount and reserves, returns an amount of the other asset representing equivalent value. Useful for calculating optimal token amounts before calling mint.
+
+```solidity
+function quote(uint amountA, uint reserveA, uint reserveB) internal pure returns (uint amountB);
+```
+
+##### getAmount
+
+- getAmountOut: Given an input asset amount, returns the maximum output amount of the other asset (accounting for fees) given reserves. Used in getAmountsOut.
+
+```solidity
+function getAmountOut(uint amountIn, uint reserveIn, uint reserveOut) internal pure returns (uint amountOut);
+```
+
+- getAmountsOut: Given an input asset amount and an array of token addresses, **calculates all subsequent maximum output token amounts** by calling getReserves for each pair of token addresses in the path in turn, and using these to call getAmountOut. **Useful for calculating optimal token amounts before calling swap**.
+
+```solidity
+function getAmountsOut(uint amountIn, address[] memory path) internal view returns (uint[] memory amounts);
+```
+
+- getAmountIn: Returns the minimum input asset amount required to buy the given output asset amount (accounting for fees) given reserves. Used in getAmountsIn.
+
+```solidity
+function getAmountIn(uint amountOut, uint reserveIn, uint reserveOut) internal pure returns (uint amountIn);
+```
+
+- **getAmountsIn**: Given an output asset amount and an array of token addresses, **calculates all preceding minimum input token amounts** by calling getReserves for each pair of token addresses in the path in turn, and using these to call getAmountIn. **Useful for calculating optimal token amounts before calling swap**.
+
+```solidity
+function getAmountsIn(address factory, uint amountOut, address[] memory path) internal view returns (uint[] memory amounts);
+```
+
+>
+
 ## Reference
 
 - [Uniswap: protocol overview](https://docs.uniswap.org/protocol/V2/concepts/protocol-overview/how-uniswap-works)
