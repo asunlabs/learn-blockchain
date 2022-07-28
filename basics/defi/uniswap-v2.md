@@ -143,6 +143,32 @@ UniswapV2Router02.swapExactTokensForETH(amountIn, amountOutMin, path, msg.sender
 
 > A blockchain-native liquidity protocol should take advantage of the trusted code execution environment, the autonomous and perpetually running virtual machine, and an open, permissionless, and inclusive access model that produces an exponentially growing ecosystem of virtual assets.
 
+## Oracles
+
+> A price oracle is any tool used to view price information about a given asset. When you look at stock prices on your phone, you are using your phone as a price oracle. Similarly, the app on your phone relies on devices to retrieve price information - likely several, which are aggregated and then displayed to you, the end-user. These are price oracles as well.
+
+> When building smart contracts that integrate with DeFi protocols, developers will inevitably run into the price oracle problem. What is the best way to retrieve the price of a given asset on-chain?
+
+> Many oracle designs on Ethereum have been implemented on an ad-hoc basis, with varying degrees of decentralization and security. Because of this, the ecosystem has witnessed numerous high-profile hacks where the oracle implementation is the primary attack vector. Some of these vulnerabilities are discussed here.
+
+> While there is no one size fits all solution, Uniswap V2 enables developers to build highly decentralized and manipulation-resistant on-chain price oracles, which may solve many of the demands necessary for building robust protocols.
+
+### Uniswap V2 solution
+
+> Uniswap V2 includes several improvements for supporting manipulation-resistant public price feeds. First, every pair measures (but does not store) the market price at the beginning of each block, before any trades take place. This price is expensive to manipulate because it is set by the last transaction, whether it is a mint, swap, or burn, in a previous block.
+
+> To set the measured price to one that is out of sync with the global market price, an attacker has to make a bad trade at the end of a previous block , typically with no guarantee that they will arbitrage it back in the next block. Attackers will lose money to arbitrageurs unless they can “selfishly” mine two blocks in a row. This type of attack presents several challenges and has not been observed to date.
+
+> Unfortunately, this alone is not enough. If significant value settles based on the price resulting from this mechanism, an attack’s profit will likely outweigh the loss.
+
+> Instead, Uniswap V2 adds this end-of-block price to a single cumulative-price variable in the core contract weighted by the amount of time this price existed. This variable represents a sum of the Uniswap price for every second in the entire history of the contract.
+
+> This variable can be used by external contracts to track accurate time-weighted average prices (TWAPs) across any time interval.
+
+> The TWAP is constructed by reading the cumulative price from an ERC20 token pair at the beginning and at the end of the desired interval. The difference in this cumulative price can then be divided by the length of the interval to create a TWAP for that period.
+
+![image](https://user-images.githubusercontent.com/83855174/179534934-5b6208e1-1a08-4c4c-8ce4-93546a6a2520.png)
+
 ## Reference
 
 - [Uniswap: protocol overview](https://docs.uniswap.org/protocol/V2/concepts/protocol-overview/how-uniswap-works)
