@@ -8,6 +8,104 @@
 1. IERC20Metadata: the extended ERC20 interface including the name, symbol and decimals functions.
 1. ERC20: the implementation of the ERC20 interface, including the name, symbol and decimals optional standard extension to the base interface.
 
+### Creating ERC20 supply
+
+> In this guide you will learn how to create an ERC20 token with a custom supply mechanism. We will showcase two idiomatic ways to use OpenZeppelin Contracts for this purpose that you will be able to apply to your smart contract development practice.
+
+> The standard interface implemented by tokens built on Ethereum is called ERC20, and Contracts includes a widely used implementation of it: the aptly named ERC20 contract. This contract, like the standard itself, is quite simple and bare-bones. In fact, if you try to deploy an instance of ERC20 as-is it will be quite literally useless…​ it will have no supply! What use is a token with no supply?
+
+> The way that supply is created is not defined in the ERC20 document. Every token is free to experiment with its own mechanisms, ranging from the most decentralized to the most centralized, from the most naive to the most researched, and more.
+
+#### Fixed Supply
+
+> Let’s say we want a token with a fixed supply of 1000, initially allocated to the account that deploys the contract. If you’ve used Contracts v1, you may have written code like the following:
+
+```solidity
+contract ERC20FixedSupply is ERC20 {
+    constructor() {
+        totalSupply += 1000;
+        balances[msg.sender] += 1000;
+    }
+}
+```
+
+> Starting with Contracts v2 this pattern is not only discouraged, but disallowed. The variables totalSupply and balances are now private implementation details of ERC20, and you can’t directly write to them. Instead, there is an internal \_mint function that will do exactly this:
+
+```solidity
+contract ERC20FixedSupply is ERC20 {
+    constructor() ERC20("Fixed", "FIX") {
+        _mint(msg.sender, 1000);
+    }
+}
+```
+
+> Encapsulating state like this makes it safer to extend contracts. For instance, in the first example we had to manually keep the totalSupply in sync with the modified balances, which is easy to forget. In fact, we omitted something else that is also easily forgotten: the Transfer event that is required by the standard, and which is relied on by some clients. The second example does not have this bug, because the internal \_mint function takes care of it.
+
+#### Rewarding miners
+
+> The internal \_mint function is the key building block that allows us to write ERC20 extensions that implement a supply mechanism.
+
+> The mechanism we will implement is a token reward for the miners that produce Ethereum blocks. In Solidity we can access the address of the current block’s miner in the global variable block.coinbase. We will mint a token reward to this address whenever someone calls the function mintMinerReward() on our token. The mechanism may sound silly, but you never know what kind of dynamic this might result in, and it’s worth analyzing and experimenting with!
+
+```solidity
+contract ERC20WithMinerReward is ERC20 {
+    constructor() ERC20("Reward", "RWD") {}
+
+    function mintMinerReward() public {
+        _mint(block.coinbase, 1000);
+    }
+}
+```
+
+> As we can see, \_mint makes it super easy to do this correctly.
+
+#### Modularizing the Mechanism
+
+> There is one supply mechanism already included in Contracts: ERC20PresetMinterPauser. This is a generic mechanism in which a set of accounts is assigned the minter role, granting them the permission to call a mint function, an external version of \_mint.
+
+> This can be used for centralized minting, where an externally owned account (i.e. someone with a pair of cryptographic keys) decides how much supply to create and for whom. There are very legitimate use cases for this mechanism, such as traditional asset-backed stablecoins.
+
+> The accounts with the minter role don’t need to be externally owned, though, and can just as well be smart contracts that implement a trustless mechanism. We can in fact implement the same behavior as the previous section.
+
+```solidity
+contract MinerRewardMinter {
+    ERC20PresetMinterPauser _token;
+
+    constructor(ERC20PresetMinterPauser token) {
+        _token = token;
+    }
+
+    function mintMinerReward() public {
+        _token.mint(block.coinbase, 1000);
+    }
+}
+```
+
+> This contract, when initialized with an ERC20PresetMinterPauser instance, and granted the minter role for that contract, will result in exactly the same behavior implemented in the previous section. What is interesting about using ERC20PresetMinterPauser is that we can easily combine multiple supply mechanisms by assigning the role to multiple contracts, and moreover that we can do this dynamically.
+
+#### Automating the Reward
+
+> So far our supply mechanisms were triggered manually, but ERC20 also allows us to extend the core functionality of the token through the \_beforeTokenTransfer hook (see Using Hooks).
+
+> Adding to the supply mechanism from previous sections, we can use this hook to mint a miner reward for every token transfer that is included in the blockchain.
+
+```solidity
+contract ERC20WithAutoMinerReward is ERC20 {
+    constructor() ERC20("Reward", "RWD") {}
+
+    function _mintMinerReward() internal {
+        _mint(block.coinbase, 1000);
+    }
+
+    function _beforeTokenTransfer(address from, address to, uint256 value) internal virtual override {
+        if (!(from == address(0) && to == block.coinbase)) {
+          _mintMinerReward();
+        }
+        super._beforeTokenTransfer(from, to, value);
+    }
+}
+```
+
 ## ERC721
 
 > The EIP specifies four interfaces:
@@ -15,13 +113,331 @@
 1. IERC721: Core functionality required in all compliant implementation.
 1. IERC721Metadata: Optional extension that adds name, symbol, and token URI, almost always included.
 1. IERC721Enumerable: Optional extension that allows enumerating the tokens on chain, often not included since it requires large gas overhead.
-1. IERC721Receiver: An interface that must be implemented by contracts if they want to accept tokens through safeTransferFrom.
+1. **IERC721Receiver: An interface that must be implemented by contracts if they want to accept tokens through safeTransferFrom**.
 
 > OpenZeppelin Contracts provides implementations of all four interfaces:
 
 1. ERC721: The core and metadata extensions, with a base URI mechanism.
 1. ERC721Enumerable: The enumerable extension.
 1. ERC721Holder: A bare bones implementation of the receiver interface.
+
+> ERC721 is a more complex standard than ERC20, with multiple optional extensions, and is split across a number of contracts. The OpenZeppelin Contracts provide flexibility regarding how these are combined, along with custom useful extensions.
+
+### Constructing an ERC721 Token Contract
+
+> We’ll use ERC721 to track items in our game, which will each have their own unique attributes. Whenever one is to be awarded to a player, it will be minted and sent to them. Players are free to keep their token or trade it with other people as they see fit, as they would any other asset on the blockchain! Please note any account can call awardItem to mint items. To restrict what accounts can mint items we can add Access Control.
+
+> Here’s what a contract for tokenized items might look like:
+
+```solidity
+// contracts/GameItem.sol
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
+import "@openzeppelin/contracts/utils/Counters.sol";
+
+contract GameItem is ERC721URIStorage {
+    using Counters for Counters.Counter;
+    Counters.Counter private _tokenIds;
+
+    constructor() ERC721("GameItem", "ITM") {}
+
+    function awardItem(address player, string memory tokenURI)
+        public
+        returns (uint256)
+    {
+        uint256 newItemId = _tokenIds.current();
+        _mint(player, newItemId);
+        _setTokenURI(newItemId, tokenURI);
+
+        _tokenIds.increment();
+        return newItemId;
+    }
+}
+```
+
+> The ERC721URIStorage contract is an implementation of ERC721 that includes the metadata standard extensions **(IERC721Metadata)** as well as a mechanism for per-token metadata. That’s where the **\_setTokenURI method comes from**: we use it to store an item’s metadata.
+
+- ERC721URIStorage = ERC721 + ERC721Metadata
+
+> Also note that, unlike ERC20, ERC721 lacks a decimals field, since each token is distinct and cannot be partitioned.
+
+> New items can be created:
+
+```js
+> gameItem.awardItem(playerAddress, "https://game.example/item-id-8u5h2m.json")
+Transaction successful. Transaction hash: 0x...
+Events emitted:
+ - Transfer(0x0000000000000000000000000000000000000000, playerAddress, 7)
+```
+
+> And the owner and metadata of each item queried:
+
+```js
+> gameItem.ownerOf(7)
+playerAddress
+> gameItem.tokenURI(7)
+"https://game.example/item-id-8u5h2m.json"
+```
+
+> This tokenURI should resolve to a JSON document that might look something like:
+
+```json
+{
+  "name": "Thor's hammer",
+  "description": "Mjölnir, the legendary hammer of the Norse god of thunder.",
+  "image": "https://game.example/item-id-8u5h2m.png",
+  "strength": 20
+}
+```
+
+> You’ll notice that the item’s information is included in the metadata, but that information isn’t on-chain! So a game developer could change the underlying metadata, changing the rules of the game!
+
+> If you’d like to put all **item information on-chain**, you can extend ERC721 to do so (though it will be **rather costly**) by providing **a Base64 Data URI** with the JSON schema encoded. You could also leverage IPFS to store the tokenURI information
+
+<details>
+<summary>Base64</summary>
+
+> Base64 util allows you to transform bytes32 data into its Base64 string representation.
+
+> This is specially useful to build URL-safe tokenURIs for both ERC721 or ERC1155. This library provides a clever way to serve URL-safe Data URI compliant strings to serve on-chain data structures.
+
+> Consider this is an example to send JSON Metadata through a Base64 Data URI using an ERC721:
+
+```solidity
+// contracts/My721Token.sol
+// SPDX-License-Identifier: MIT
+
+import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
+import "@openzeppelin/contracts/utils/Strings.sol";
+import "@openzeppelin/contracts/utils/Base64.sol";
+
+contract My721Token is ERC721 {
+    using Strings for uint256;
+
+    constructor() ERC721("My721Token", "MTK") {}
+
+    ...
+
+    function tokenURI(uint256 tokenId)
+        public
+        pure
+        override
+        returns (string memory)
+    {
+        bytes memory dataURI = abi.encodePacked(
+            '{',
+                '"name": "My721Token #', tokenId.toString(), '"',
+                // Replace with extra ERC721 Metadata properties
+            '}'
+        );
+
+        return string(
+            abi.encodePacked(
+                "data:application/json;base64,",
+                Base64.encode(dataURI)
+            )
+        );
+    }
+}
+```
+
+</details>
+
+### Preset ERC721 contract
+
+> A preset ERC721 is available, ERC721PresetMinterPauserAutoId. It is preset to allow for token minting (create) with token ID and URI auto generation, stop all token transfers (pause) and allow holders to burn (destroy) their tokens. The contract uses Access Control to control access to the minting and pausing functionality. The account that deploys the contract will be granted the minter and pauser roles, as well as the default admin role.
+
+> This contract is ready to deploy without having to write any Solidity code. It can be used as-is for quick prototyping and testing, but is also suitable for production environments.
+
+## ERC777
+
+> Like ERC20, ERC777 is a standard for fungible tokens, and is focused around allowing more complex interactions when trading tokens. More generally, it brings tokens and Ether closer together by providing the equivalent of a msg.value field, but for tokens.
+
+> The standard also brings multiple quality-of-life improvements, such as getting rid of the confusion around decimals, minting and burning with proper events, among others, but its killer feature is receive hooks.
+
+> **A hook is simply a function in a contract that is called when tokens are sent to it, meaning accounts and contracts can react to receiving tokens**.
+
+> This enables a lot of interesting use cases, including atomic purchases using tokens (no need to do approve and transferFrom in two separate transactions), rejecting reception of tokens (by reverting on the hook call), redirecting the received tokens to other addresses (similarly to how PaymentSplitter does it), among many others.
+
+> Furthermore, since contracts are required to implement these hooks in order to receive tokens, no tokens can get stuck in a contract that is unaware of the ERC777 protocol, as has happened countless times when using ERC20s.
+
+### What If I Already Use ERC20?
+
+> The standard has you covered! The ERC777 standard is backwards compatible with ERC20, meaning you can interact with these tokens as if they were ERC20, using the standard functions, while still getting all of the niceties, including send hooks. See the EIP’s Backwards Compatibility section to learn more.
+
+### Constructing an ERC777 Token Contract
+
+> We will replicate the GLD example of the ERC20 guide, this time using ERC777. As always, check out the API reference to learn more about the details of each function.
+
+```solidity
+// contracts/GLDToken.sol
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+import "@openzeppelin/contracts/token/ERC777/ERC777.sol";
+
+contract GLDToken is ERC777 {
+    constructor(uint256 initialSupply, address[] memory defaultOperators)
+        ERC777("Gold", "GLD", defaultOperators)
+    {
+        _mint(msg.sender, initialSupply, "", "");
+    }
+}
+```
+
+> In this case, we’ll be extending from the ERC777 contract, which provides an implementation with compatibility support for ERC20. The API is quite similar to that of ERC777, and we’ll once again make use of \_mint to assign the initialSupply to the deployer account. Unlike ERC20’s \_mint, this one includes some extra parameters, but you can safely ignore those for now.
+
+> You’ll notice both name and symbol are assigned, but not decimals. **The ERC777 specification makes it mandatory to include support** for these functions (unlike ERC20, where it is optional and we had to include ERC20Detailed), but also mandates that **decimals always returns a fixed value of 18**, so there’s no need to set it ourselves. For a review of decimals's role and importance, refer back to our ERC20 guide.
+
+> Finally, we’ll need to set the defaultOperators: special accounts (usually other smart contracts) that will be able to transfer tokens on behalf of their holders. If you’re not planning on using operators in your token, you can simply pass an empty array.
+
+> To move tokens from one account to another, we can use both ERC20's transfer method, or the new ERC777's send, which fulfills a very similar role, but adds an optional data field:
+
+```js
+> GLDToken.transfer(otherAddress, 300)
+> GLDToken.send(otherAddress, 300, "")
+> GLDToken.balanceOf(otherAddress)
+600
+> GLDToken.balanceOf(deployerAddress)
+400
+```
+
+### Sending Tokens to Contracts
+
+> A key difference when using send is that token transfers to other contracts may revert with the following message:
+
+```sh
+ERC777: token recipient contract has no implementer for ERC777TokensRecipient
+```
+
+> This is a good thing! It means that the recipient contract has not registered itself as aware of the ERC777 protocol, so transfers to it are disabled to prevent tokens from being locked forever
+
+> As an example, the Golem contract currently holds over 350k GNT tokens, worth multiple tens of thousands of dollars, and lacks methods to get them out of there. This has happened to virtually every ERC20-backed project, usually due to user error.
+
+## ERC1155
+
+> ERC1155 is a novel token standard that aims to take the best from previous standards to create a fungibility-agnostic and gas-efficient token contract. ERC1155 draws ideas from all of ERC20, ERC721, and ERC777. If you’re unfamiliar with those standards, head to their guides before moving on.
+
+### Multi Token Standard
+
+> **The distinctive feature of ERC1155 is that it uses a single smart contract to represent multiple tokens at once**. This is why its balanceOf function differs from ERC20’s and ERC777’s: it has an additional id argument for the identifier of the token that you want to query the balance of.
+
+> This is similar to how ERC721 does things, but in that standard a token id has no concept of balance: each token is non-fungible and exists or doesn’t. The ERC721 balanceOf function refers to how many different tokens an account has, not how many of each. On the other hand, in **ERC1155 accounts have a distinct balance for each token id**, and non-fungible tokens are implemented by simply minting a single one of them.
+
+> This approach leads to massive gas savings for projects that require multiple tokens. Instead of deploying a new contract for each token type, a single ERC1155 token contract can hold the entire system state, reducing deployment costs and complexity.
+
+### Batch Operations
+
+> Because all state is held in a single contract, it is possible to operate over multiple tokens in a single transaction very efficiently. The standard provides two functions, balanceOfBatch and safeBatchTransferFrom, that make querying multiple balances and transferring multiple tokens simpler and less gas-intensive.
+
+> In the spirit of the standard, we’ve also included batch operations in the non-standard functions, such as \_mintBatch.
+
+### Constructing an ERC1155 Token Contract
+
+> We’ll use ERC1155 to track multiple items in our game, which will each have their own unique attributes. **We mint all items to the deployer of the contract, which we can later transfer to players**. Players are free to keep their tokens or trade them with other people as they see fit, as they would any other asset on the blockchain!
+
+> For simplicity we will mint all items in the constructor but you could add minting functionality to the contract to mint on demand to players.
+
+```solidity
+// contracts/GameItems.sol
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
+
+contract GameItems is ERC1155 {
+    uint256 public constant GOLD = 0;
+    uint256 public constant SILVER = 1;
+    uint256 public constant THORS_HAMMER = 2;
+    uint256 public constant SWORD = 3;
+    uint256 public constant SHIELD = 4;
+
+    constructor() ERC1155("https://game.example/api/item/{id}.json") {
+        _mint(msg.sender, GOLD, 10**18, "");
+        _mint(msg.sender, SILVER, 10**27, "");
+        _mint(msg.sender, THORS_HAMMER, 1, "");
+        _mint(msg.sender, SWORD, 10**9, "");
+        _mint(msg.sender, SHIELD, 10**9, "");
+    }
+}
+```
+
+> Note that for our Game Items, Gold is a fungible token whilst Thor’s Hammer is a non-fungible token as we minted only one.
+
+> The ERC1155 contract includes the optional extension IERC1155MetadataURI. That’s where the uri function comes from: we use it to retrieve the metadata uri. Also note that, unlike ERC20, ERC1155 lacks a decimals field, since each token is distinct and cannot be partitioned. Once deployed, we will be able to query the deployer’s balance:
+
+```js
+> gameItems.balanceOf(deployerAddress,3)
+1000000000 // token SWORD
+```
+
+> We can transfer items to player accounts:
+
+```js
+> gameItems.safeTransferFrom(deployerAddress, playerAddress, 2, 1, "0x0")
+> gameItems.balanceOf(playerAddress, 2)
+1
+> gameItems.balanceOf(deployerAddress, 2)
+0
+```
+
+> We can also batch transfer items to player accounts and get the balance of batches:
+
+```js
+> gameItems.safeBatchTransferFrom(deployerAddress, playerAddress, [0,1,3,4], [50,100,1,1], "0x0")
+> gameItems.balanceOfBatch([playerAddress,playerAddress,playerAddress,playerAddress,playerAddress], [0,1,2,3,4])
+[50,100,1,1,1]
+```
+
+> The metadata uri can be obtained:
+
+```js
+> gameItems.uri(2)
+"https://game.example/api/item/{id}.json"
+```
+
+> The uri can include the string {id} which **clients must replace with the actual token ID**, in lowercase hexadecimal (with no 0x prefix) and leading zero padded to 64 hex characters.
+
+> For token ID 2 and uri https://game.example/api/item/{id}.json clients would replace {id} with 0000000000000000000000000000000000000000000000000000000000000002 to retrieve JSON at:
+
+```
+https://game.example/api/item/0000000000000000000000000000000000000000000000000000000000000002.json
+```
+
+> You’ll notice that the item’s information is included in the metadata, but that information isn’t on-chain! So a game developer could change the underlying metadata, changing the rules of the game!
+
+### Sending Tokens to Contracts
+
+> A key difference when using safeTransferFrom is that token transfers to other contracts may revert with the following message:
+
+```
+ERC1155: transfer to non ERC1155Receiver implementer
+```
+
+> This is a good thing! It means that the recipient contract has not registered itself as aware of the ERC1155 protocol, so transfers to it are disabled to prevent tokens from being locked forever. As an example, the Golem contract currently holds over 350k GNT tokens, worth multiple tens of thousands of dollars, and lacks methods to get them out of there. This has happened to virtually every ERC20-backed project, usually due to user error.
+
+> In order for our **contract to receive ERC1155 tokens** we can inherit from the convenience contract **ERC1155Holder** which handles the registering for us. Though we need to remember to implement functionality to allow tokens to be transferred out of our contract:
+
+```solidity
+// contracts/MyContract.sol
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+import "@openzeppelin/contracts/token/ERC1155/utils/ERC1155Holder.sol";
+
+contract MyContract is ERC1155Holder {
+}
+```
+
+> We can also implement more complex scenarios using the onERC1155Received and onERC1155BatchReceived functions.
+
+### Preset ERC1155 contract
+
+> A preset ERC1155 is available, ERC1155PresetMinterPauser. It is preset to allow for token minting (create) - including batch minting, stop all token transfers (pause) and allow holders to burn (destroy) their tokens. The contract uses Access Control to control access to the minting and pausing functionality. The account that deploys the contract will be granted the minter and pauser roles, as well as the default admin role.
+
+> This contract is ready to deploy without having to write any Solidity code. It can be used as-is for quick prototyping and testing, but is also suitable for production environments.
 
 ## Access control
 
@@ -897,3 +1313,4 @@ function _beforeTokenTransfer(address from, address to, uint256 amount)
 
 - [OpenZeppelin docs](https://docs.openzeppelin.com/)
 - [OpenZeppelin docs : upgradable smart contract](https://docs.openzeppelin.com/learn/upgrading-smart-contracts#whats-in-an-upgrade)
+- [OZ - Creating ERC20 Supply](https://docs.openzeppelin.com/contracts/4.x/erc20-supply)
