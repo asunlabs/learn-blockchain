@@ -147,27 +147,47 @@ UniswapV2Router02.swapExactTokensForETH(amountIn, amountOutMin, path, msg.sender
 
 > A price oracle is any tool used to view price information about a given asset. When you look at stock prices on your phone, you are using your phone as a price oracle. Similarly, the app on your phone relies on devices to retrieve price information - likely several, which are aggregated and then displayed to you, the end-user. These are price oracles as well.
 
-> When building smart contracts that integrate with DeFi protocols, developers will inevitably run into the price oracle problem. What is the best way to retrieve the price of a given asset on-chain?
+> **When building smart contracts that integrate with DeFi protocols, developers will inevitably run into the price oracle problem**. What is the best way to retrieve the price of a given asset on-chain?
 
-> Many oracle designs on Ethereum have been implemented on an ad-hoc basis, with varying degrees of decentralization and security. Because of this, the ecosystem has witnessed numerous high-profile hacks where the oracle implementation is the primary attack vector. Some of these vulnerabilities are discussed here.
+> **Many oracle designs on Ethereum have been implemented on an ad-hoc basis, with varying degrees of decentralization and security**. Because of this, the ecosystem has witnessed numerous high-profile hacks where the oracle implementation is the primary attack vector. Some of these vulnerabilities are discussed here.
 
-> While there is no one size fits all solution, Uniswap V2 enables developers to build highly decentralized and manipulation-resistant on-chain price oracles, which may solve many of the demands necessary for building robust protocols.
+> While there is no one size fits all solution, **Uniswap V2 enables developers to build highly decentralized and manipulation-resistant on-chain price oracles**, which may solve many of the demands necessary for building robust protocols.
 
 ### Uniswap V2 solution
 
-> Uniswap V2 includes several improvements for supporting manipulation-resistant public price feeds. First, every pair measures (but does not store) the market price at the beginning of each block, before any trades take place. This price is expensive to manipulate because it is set by the last transaction, whether it is a mint, swap, or burn, in a previous block.
+> **Uniswap V2 includes** several improvements for supporting manipulation-resistant **public price feeds**. **First, every pair measures (but does not store) the market price at the beginning of each block, before any trades take place**. This price is **expensive to manipulate** because it is set by the last transaction, whether it is a mint, swap, or burn, in a previous block.
 
 > To set the measured price to one that is out of sync with the global market price, an attacker has to make a bad trade at the end of a previous block , typically with no guarantee that they will arbitrage it back in the next block. Attackers will lose money to arbitrageurs unless they can “selfishly” mine two blocks in a row. This type of attack presents several challenges and has not been observed to date.
 
-> Unfortunately, this alone is not enough. If significant value settles based on the price resulting from this mechanism, an attack’s profit will likely outweigh the loss.
+> Unfortunately, **this alone is not enough**. If significant value settles based on the price resulting from this mechanism, an attack’s profit will likely outweigh the loss.
 
-> Instead, Uniswap V2 adds this end-of-block price to a single cumulative-price variable in the core contract weighted by the amount of time this price existed. This variable represents a sum of the Uniswap price for every second in the entire history of the contract.
+> Instead, **Uniswap V2** adds this end-of-block price to **a single cumulative-price variable** in the core contract **weighted by the amount of time this price existed**. This variable represents a sum of the Uniswap price for every second in the entire history of the contract.
+
+![image](https://user-images.githubusercontent.com/83855174/182163291-81421e5e-918f-4388-9846-ca82f8af3c26.png)
 
 > This variable can be used by external contracts to track accurate time-weighted average prices (TWAPs) across any time interval.
 
 > The TWAP is constructed by reading the cumulative price from an ERC20 token pair at the beginning and at the end of the desired interval. The difference in this cumulative price can then be divided by the length of the interval to create a TWAP for that period.
 
-![image](https://user-images.githubusercontent.com/83855174/179534934-5b6208e1-1a08-4c4c-8ce4-93546a6a2520.png)
+![image](https://user-images.githubusercontent.com/83855174/182163745-0bef812d-5f70-46f2-b540-0d1b2891b20f.png)
+
+> TWAPs can be used directly or as the basis for moving averages (EMAs and SMAs) as needed.
+
+> A few notes:
+
+1. For a 10-minute TWAP, sample once every 10 minutes. For a 1-week TWAP, sample once every week.
+1. For a simple TWAP, the cost of manipulation increases (approx. linear) with liquidity on Uniswap, as well as (approx. linear) with the length of time over which you average.
+1. The Cost of an attack is relatively simple to estimate. Moving the price 5% on a 1-hour TWAP is approximately equal to the amount lost to arbitrage and fees for moving the price 5% every block for 1 hour.
+
+> There are some nuances that are good to be aware of when using Uniswap V2 as an oracle, especially where manipulation resistance is concerned. The whitepaper elaborates on some of them. Additional oracle-focused developer guides and documentation will be released soon.
+
+> In the meantime, check out our example implementation of a 24 hr TWAP Oracle built on Uniswap V2!
+
+### Manipulation resistance
+
+> The cost of manipulating the price for a specific time period can be roughly estimated as the amount lost to arbitrage and fees every block for the entire period. For larger liquidity pools and over longer time periods, this attack is impractical, as the cost of manipulation typically exceeds the value at stake.
+
+> Other factors, such as network congestion, can reduce the cost of attack. For a more in-depth review of the security of Uniswap V2 price oracles, read the security audit section on Oracle Integrity.
 
 ## Smart contract
 
@@ -252,7 +272,7 @@ interface IUniswapV2Factory {
 
 You also can find an ABI from dependency like below
 
-```solidity
+```js
 import IUniswapV2Factory from '@uniswap/v2-core/build/IUniswapV2Factory.json'
 ```
 
@@ -305,8 +325,58 @@ function MINIMUM_LIQUIDITY() external pure returns (uint);
 function factory() external view returns (address);
 ```
 
-====== 20220728 done
-https://docs.uniswap.org/protocol/V2/reference/smart-contracts/pair#token0
+> token0: Returns the address of the pair token with the lower sort order.
+
+```solidity
+function token0() external view returns (address);
+```
+
+> token1: Returns the address of the pair token with the higher sort order.
+
+```solidity
+function token1() external view returns (address);
+```
+
+> getReserves: Returns the reserves of token0 and token1 used to price trades and distribute liquidity. See Pricing. Also returns the block.timestamp (mod 2\*\*32) of the last block during which an interaction occured for the pair.
+
+```solidity
+function getReserves() external view returns (uint112 reserve0, uint112 reserve1, uint32 blockTimestampLast);
+```
+
+> price0CumulativeLast, price1CumulativeLast: see oracles.
+
+> kLast: Returns the product of the reserves as of the most recent liquidity event. See Protocol Charge Calculation.
+
+```solidity
+function kLast() external view returns (uint);
+```
+
+#### State-changing functions
+
+> mint: creates pool tokens
+
+```solidity
+function mint(address to) external returns (uint liquidity);
+```
+
+> burn: destroy pool tokens
+
+```solidity
+function burn(address to) external returns (uint amount0, uint amount1);
+```
+
+> swap: Swaps tokens. For regular swaps, data.length must be 0. Also see Flash Swaps.
+
+```solidity
+function swap(uint amount0Out, uint amount1Out, address to, bytes calldata data) external;
+```
+
+> skim, sync: See the whitepaper.
+
+```solidity
+function skim(address to) external;
+function sync() external;
+```
 
 ### Fees
 
@@ -384,7 +454,111 @@ function getAmountIn(uint amountOut, uint reserveIn, uint reserveOut) internal p
 function getAmountsIn(address factory, uint amountOut, address[] memory path) internal view returns (uint[] memory amounts);
 ```
 
->
+#### State-changing functions
+
+- **addLiquidity**: Adds liquidity to an **ERC-20⇄ERC-20 pool**.
+
+> To cover all possible scenarios, **msg.sender should have already given the router an allowance** of at least amountADesired/amountBDesired on tokenA/tokenB.
+
+> Always adds assets at the ideal ratio, according to the price when the transaction is executed.
+
+> If a pool for the passed tokens does not exists, one is created automatically, and exactly amountADesired/amountBDesired tokens are added.
+
+```solidity
+function addLiquidity(
+  address tokenA, // pool token
+  address tokenB, // pool token
+  uint amountADesired, // add as a liquidity
+  uint amountBDesired, // add as a liquidity
+  uint amountAMin, // the extent token can go up before tx reverts
+  uint amountBMin, // the extent token can go up before tx reverts
+  address to, // liquidity token recipient
+  uint deadline // after this time amount, tx will revert. unix timestamp
+) external returns (uint amountA, uint amountB, uint liquidity);
+```
+
+parameters
+
+> token A,B are pool tokens.
+> amount A,B desired: the amount of token A,B to add as liquidity in the case of A or B depreciates
+> amount A,B min: the extent token B,A can go up before the tx reverts
+> deadline: Unix timestamp after which the transaction will revert.
+> to: the recipient of the liquidity tokens
+
+return values:
+
+> amount A,B: the amount of token A,B sent to the pool
+> liquidity: the amount of liquidity tokens minted
+
+- **addLiquidityETH**: Adds liquidity to an **ERC-20⇄WETH pool** with ETH.
+
+```solidity
+function addLiquidityETH(
+  address token,
+  uint amountTokenDesired,
+  uint amountTokenMin,
+  uint amountETHMin,
+  address to,
+  uint deadline
+) external payable returns (uint amountToken, uint amountETH, uint liquidity);
+```
+
+> To cover all possible scenarios, **msg.sender should have already given the router an allowance** of at least amountTokenDesired on token.
+
+> Always adds assets at the ideal ratio, according to the price when the transaction is executed.
+
+> msg.value is treated as a amountETHDesired.
+
+> Leftover ETH, if any, is returned to msg.sender.
+
+> **If a pool for the passed token and WETH does not exists, one is created automatically**, and exactly amountTokenDesired/msg.value tokens are added.
+
+returns values
+
+> amountToken: the amount of tooken sent to the pool
+> amountETH: the amount of ETH converted to WETH and sent to the pool
+> liquidity: the amount of liquidity tokens minted
+
+- **removeLiquidity**: Removes liquidity from an ERC-20⇄ERC-20 pool.
+
+```solidity
+function removeLiquidity(
+  address tokenA, // pool token
+  address tokenB, // pool token
+  uint liquidity, // liquidity token amount to remove
+  uint amountAMin, // minimum token A amount that must be received
+  uint amountBMin, // minimum token B amount that must be received
+  address to, //
+  uint deadline
+) external returns (uint amountA, uint amountB);
+```
+
+parameters
+
+> token A,B: pool token addresses
+> liquidity: The amount of liquidity tokens to remove.
+> amountAMin, amountBMin: The minimum amount of tokenA/B that must be received for the transaction not to revert.
+> to: Recipient of the underlying assets.
+> deadline: Unix timestamp after which the transaction will revert.
+
+returns
+
+> amount A,B: The amount of tokenA/B received.
+
+_We are not going to cover all the APIs. Choose and read them based on your project needs_
+
+- swapExactTokensForTokens: Swaps an exact amount of input tokens for as many output tokens as possible, along the route determined by the path. The first element of path is the input token, the last is the output token, and any intermediate elements represent intermediate pairs to trade through (if, for example, a direct pair does not exist).
+
+> msg.sender should have already given the router an allowance of at least amountIn on the input token.
+
+parameters
+
+> amountIn: The amount of input tokens to send.
+> amountOutMin: The minimum amount of output tokens that must be received for the transaction not to revert.
+> path: An array of token addresses. path.length must be >= 2. Pools for each consecutive pair of addresses must exist and have liquidity.
+> to: recipient of the output tokens
+> deadline: Unix timestamp after which the transaction will revert.
+> amounts: The input token amount and all subsequent output token amounts.
 
 ## Reference
 
