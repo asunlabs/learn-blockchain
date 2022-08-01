@@ -83,3 +83,39 @@ console.log(`🎉 🥳 Order filled. TxHash: ${fillTxReceipt.transactionHash}`)
 ```
 
 > That's it! More examples and advanced usage can be found in the examples documentation.
+
+## How it works
+
+Overall swap cases are as followings.
+
+- ERC20 <=> ERC721: v4
+- ERC20 <=> ERC1155: v4
+- ERC721 <=> ERC721: v3
+
+**case 1: immediate p2p swap**
+
+1. maker creates an order
+1. maker signs the order
+1. taker fills the order
+
+**case 2: upload an order to publicly hosted orderbook**
+
+1. maker creates an order
+1. maker signs the order
+1. maker posts the order to the orderbook
+1. taker search the orderbook
+1. taker fills the order
+
+> Note: Currently 0x v4 does not support NFT<>NFT swaps (e.g. ERC721<>ERC721). If required, you can use the 0x v3 protocol until v4 support is added.
+
+<details>
+<summary>NFT swap app architecture</summary>
+
+    		Appication
+    		0x API(targeting ERC20 swap) & NFT swap SDK
+    		0x protocol
+    		blockchain network
+
+</details>
+
+0x protocol and NFT swap SDK supports: Mainnet, Ropsten testnet
