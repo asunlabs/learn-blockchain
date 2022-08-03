@@ -1,0 +1,195 @@
+# Ethereum PoS update 
+
+> Soon, the current Ethereum Mainnet will merge with the Beacon Chain proof-of-stake system. This will mark the end of proof-of-work for Ethereum, and the full transition to proof-of-stake. This sets the stage for future scaling upgrades including sharding. The Merge will reduce Ethereum's energy consumption by ~99.95%.
+
+## WHEN'S IT SHIPPING?
+
+**~Q3/Q4 2022**
+
+> The Merge is **the most significant upgrade** in the history of Ethereum. Extensive testing and bug bounties were undertaken to ensure a safe transition to proof-of-stake. This process is in its final stages, with plans to undergo The Merge on a few public testnets before finally moving forward with Mainnet. If you're excited about The Merge, follow the EF Blog or the client communication channels for the latest official word on When Merge?
+
+## What is The Merge?
+
+- Merge = Ethereum mainnet layer(PoS) + Beacon chain(PoS)
+
+> The Merge represents the joining of the existing execution layer of Ethereum (the Mainnet we use today) with its new proof-of-stake consensus layer, the Beacon Chain. It **eliminates the need for energy-intensive mining** and instead secures the network using staked ETH. A truly exciting step in realizing the Ethereum vision – more scalability, security, and sustainability.
+
+![image](https://user-images.githubusercontent.com/83855174/182559604-b4e1f0d0-c4c7-48da-ada1-d96da5359a1f.png)
+
+> It's important to remember that initially, the Beacon Chain shipped separately from Mainnet. Ethereum Mainnet - with all it's accounts, balances, smart contracts, and blockchain state - continues to be secured by proof-of-work, even while the Beacon Chain runs in parallel using proof-of-stake. The approaching Merge is when these two systems finally come together, and proof-of-work is replaced permanently by proof-of-stake.
+
+> Let's consider an analogy. Imagine Ethereum is a spaceship that isn't quite ready for an interstellar voyage. With the Beacon Chain, the community has built a new engine and a hardened hull. After significant testing, it's almost time to hot-swap the new engine for the old mid-flight. This will merge the new, more efficient engine into the existing ship, ready to put in some serious lightyears and take on the universe.
+
+> Let's consider an analogy. Imagine Ethereum is a spaceship that isn't quite ready for an interstellar voyage. With the Beacon Chain, the community has built a new engine and a hardened hull. After significant testing, it's almost time to hot-swap the new engine for the old mid-flight. This will merge the new, more efficient engine into the existing ship, ready to put in some serious lightyears and take on the universe.
+
+## Merging with Mainnet
+
+> Since genesis, proof-of-work has secured Mainnet. This is the Ethereum blockchain we're all used to—it contains every transaction, smart contract, and balance since it began in July 2015.
+
+> Throughout Ethereum's history, developers have been hard at work preparing for an eventual transition away from proof-of-work to proof-of-stake. On December 1, 2020, the Beacon Chain was created, which has since existed as a separate blockchain to Mainnet, running in parallel.
+
+> The Beacon Chain has not been processing Mainnet transactions. Instead, it has been reaching consensus on its own state by agreeing on active validators and their account balances. After extensive testing, the Beacon Chain's time to reach consensus on more is rapidly approaching. After The Merge, the Beacon Chain will be the consensus engine for all network data, including execution layer transactions and account balances.
+
+> The Merge represents the official switch to using the Beacon Chain as the engine of block production. Mining will no longer be the means of producing valid blocks. Instead, the proof-of-stake validators assume this role and will be responsible for processing the validity of all transactions and proposing blocks.
+
+> No history is lost. As Mainnet gets merged with the Beacon Chain, it will also merge the entire transactional history of Ethereum. You don't need to do anything. Your funds are safe.
+
+## What do I need to do to get ready?
+
+> The Merge is one of the most significant and anticipated upgrades in the history of Ethereum, and although in the long-term its impact will be felt by everyone, in the near-term some folks will need to take action to be fully prepared.
+
+### Users and holders
+
+> This bears repeating: As a user or holder of ETH or any other digital asset on Ethereum, as well as non-node-operating stakers, you do not need to do anything with your funds or wallet before The Merge. Despite swapping out proof-of-work, the entire history of Ethereum since genesis remains intact and unaltered after the transition to proof-of-stake. Any funds held in your wallet before The Merge will still be accessible after The Merge. No action is required to upgrade on your part.
+
+> As we approach The Merge of Ethereum Mainnet, you should be on high alert for scams trying to take advantage of users during this transition. Do not send your ETH anywhere in an attempt to "upgrade to ETH2." There is no "ETH2" token, and there is nothing more you need to do for your funds to remain safe.
+
+### Node operators and dapp developers
+
+<details>
+<summary> Staking node operators and providers </summary>
+
+> If you are a staker running your own node setup or a node infrastructure provider, there are a few things you need to be aware of to be prepared for The Merge.
+
+> Key action items include:
+
+1. Run both a consensus layer client and an execution layer client; third-party endpoints to obtain execution data will be unavailable after The Merge.
+1. Authenticate both execution layer and consensus layer clients with a shared JWT secret so they can securely communicate.
+1. Set a fee recipient address to receive your earned transaction fee tips/MEV.
+Not completing the first two items above items will result in your node being seen as "offline" after The Merge until both layers are synced and authenticated.
+
+> Not setting a fee recipient will still allow your validator to behave as usual, but you will miss out on unburnt fee tips and any MEV you would have otherwise earned in blocks your validator proposes.
+
+> For more detailed information and a summary of links to client resources, stakers are encouraged to check out the Merge Readiness Checklist over on the Staking Launchpad to make sure you're fully prepared for The Merge. Note for stakers using SaaS or staking pools: There is nothing you need to do to prepare for The Merge. More below on staying safe.
+
+</details>
+
+<details>
+<summary> Non-validating node operators and infrastructure providers</summary>
+
+> If you're operating a non-validating Ethereum node, the most significant change that comes with The Merge is the requirement to run clients for BOTH the execution layer AND the consensus layer.
+
+> You probably are already running an execution layer client, such as Geth, Erigon, Besu or Nethermind. Up until The Merge, an execution layer client was enough to receive, properly validate, and propagate blocks being gossiped by the network. After The Merge, the validity of transactions contained within an execution payload will also depend on the validity of the "consensus block" it is contained within.
+
+> As a result, a full Ethereum node after The Merge requires both an execution layer client and a consensus layer client. These two clients work together using a new Engine API. The Engine API requires authentication using a JWT secret, which is provided to both clients allowing secure communication.
+
+>Key action items include:
+
+1. Install a consensus layer client in addition to an execution layer client
+1. Authenticate execution and consensus clients with a shared JWT secret so they can securely communicate with one another.
+
+> Not completing the above items in time for The Merge will result in your node appearing to be "offline" until both layers are synced and authenticated.
+
+> Node operators can also check out the Merge Readiness Checklist on the Staking Launchpad for more information, as many of the details apply to all node operators.
+
+</details>
+
+<details>
+<summary> Dapp and smart contract developers</summary>
+
+> The Merge has been designed to have minimal impact on smart contract and dapp developers, but there are a few small things devs may want to be aware of heading into The Merge. The Merge comes with changes to consensus, which also includes changes related to:
+
+1. block structure
+1. slot/block timing
+1. opcode changes
+1. sources of on-chain randomness
+1. concept of safe head and finalized blocks
+
+</details>
+
+> This will signal the end of proof-of-work for Ethereum and start the era of a more sustainable, eco-friendly Ethereum. Learn more about Ethereum energy consumption.
+
+> This will also set the stage for further scalability upgrades not possible under proof-of-work, bringing Ethereum one step closer to achieving the full scale, security and sustainability outlined in its Ethereum vision.
+
+## Misconceptions about The Merge
+
+<details> 
+<summary>Running a node requires staking 32 ETH?</summary>
+
+> False. Anyone is free to sync their own self-verified copy of Ethereum (i.e. run a node). No ETH is required. Not before The Merge, not after The Merge, not ever.
+
+> There are two types of Ethereum nodes: nodes that can propose blocks and nodes that don't. 
+
+> Nodes that propose blocks are only a small number of the total nodes on Ethereum. This category includes mining nodes under proof-of-work (PoW) and validator nodes under proof-of-stake (PoS). This category requires committing economic resources (such as GPU hash power in proof-of-work or staked ETH in proof-of-stake) in exchange for the ability to occasionally propose the next block and earn protocol rewards.
+
+> The other nodes on the network (i.e. the majority) are not required to commit any economic resources beyond a consumer-grade computer with 1-2 TB of available storage and an internet connection. These nodes do not propose blocks, but they still serve a critical role in securing the network by holding all block proposers accountable by listening for new blocks and verifying their validity on arrival according to the network consensus rules. If the block is valid, the node continues propagating it through the network. If the block is invalid for whatever reason, the node software will disregard it as invalid and stop its propagation.
+
+> Running a non-block-producing node is possible for anyone under either consensus mechanism (proof-of-work or proof-of-stake); it is strongly encouraged for all users if they have the means. Running a node is immensely valuable for Ethereum and gives added benefits to any individual running one, such as improved security, privacy and censorship resistance.
+
+> The ability for anyone to run their own node is absolutely essential to maintaining the decentralization of the Ethereum network.
+
+</details> 
+
+<details>
+<summary>The Merge will reduce gas fees?</summary>
+
+> False. The Merge is a change of consensus mechanism, not an expansion of network capacity, and will not result in lower gas fees.
+
+> Gas fees are a product of network demand relative to the capacity of the network. The Merge deprecates the use of proof-of-work, transitioning to proof-of-stake for consensus, but does not significantly change any parameters that directly influence network capacity or throughput.
+
+> With a rollup-centric roadmap, efforts are being focused on scaling user activity at layer 2, while enabling layer 1 Mainnet as a secure decentralized settlement layer optimized for rollup data storage to help make rollup transactions exponentially cheaper. The transition to proof-of-stake is a critical precursor to realizing this. More on gas and fees.
+
+</details>
+
+<details>
+<summary>Transactions will be noticeably faster after The Merge?</summary>
+
+> False. Though some slight changes exist, transaction speed will mostly remain the same on layer 1.
+
+> A transaction's "speed" can be measured in a few ways, including time to be included in a block and time to finalization. Both of these changes slightly, but not in a way that users will notice.
+
+> Historically, on proof-of-work, the target was to have a new block every ~13.3 seconds. On the Beacon Chain, slots occur precisely every 12 seconds, each of which is an opportunity for a validator to publish a block. Most slots have blocks, but not necessarily all (i.e. a validator is offline). On proof-of-stake blocks will be produced ~10% more frequently than on proof-of-work. This is a fairly insignificant change and is unlikely to be noticed by users.
+
+> Proof-of-stake introduces the transaction finality concept that did not previously exist. On proof-of-work, the ability to reverse a block gets exponentially more difficult with every passing block mined on top of a transaction, but it never quite reaches zero. Under proof-of-stake, blocks are bundled into epochs (6.4 minute spans of time containing 32 chances for blocks) which validators vote on. When an epoch ends, validators vote on whether to consider the epoch 'justified'. If validators agree to justify the epoch, it gets finalized in the next epoch. Undoing finalized transactions is economically unviable as it would require obtaining and burning over one-third of the total staked ETH.
+
+> Many dapps require a number of proof-of-work block confirmations that take a period of time on par with how long proof-of-stake finality takes. Finality can offer additional security guarantees, but will not significantly speed up transactions.
+
+</details>
+
+
+<details>
+<summary>You can withdraw staked ETH once The Merge occurs?</summary>
+
+> False. Staking withdrawals are not yet enabled with The Merge. The following Shanghai upgrade will enable staking withdrawals.
+
+> Staked ETH, staking rewards to date, and newly issued ETH immediately after The Merge will still be locked on the Beacon Chain without the ability to withdraw.
+
+> Withdrawals are planned for the Shanghai upgrade, the next major upgrade following The Merge. This means that newly issued ETH, though accumulating on the Beacon Chain, will remain locked and illiquid for at least 6-12 months following The Merge.
+
+</details>
+
+<details>
+<summary>Validators will not receive any liquid ETH rewards til the Shanghai upgrade when withdrawals are enabled</summary>
+
+> False. Fee tips/MEV will be credited to a Mainnet account controlled by the validator, available immediately.
+
+> This may seem counterintuitive to the above note that withdrawals are not enabled til the Shanghai upgrade, but validators WILL have immediate access to the fee rewards/MEV earned during block proposals.
+
+> The protocol issues ETH as a reward to validators for contributing to consensus. This Beacon Chain accounts for the newly issued ETH, where a validator has a unique address that holds its staked ETH and protocol rewards. This ETH is locked until Shanghai.
+
+> ETH on the execution layer (Ethereum Mainnet as we know it today) is accounted for separately from the consensus layer. When users execute transactions on Ethereum Mainnet, ETH must be paid to cover the gas, including a tip to the validator. This ETH is already on the execution layer, is NOT being newly issued by the protocol, and is available to the validator immediately (given a proper fee recipient address is provided to the client software).
+
+</details>
+
+<details>
+<summary>When withdrawals are enabled, stakers will all exit at once?</summary>
+
+> False. Validator exits are rate limited for security reasons.
+
+> After the Shanghai upgrade enabled withdrawals, all validators will be incentivized to withdraw their staking balance above 32 ETH, as these funds do not add to yield and are otherwise locked. Depending on the APR (determined by total ETH staked), they may be incentivized to exit their validator(s) to reclaim their entire balance or potentially stake even more using their rewards to earn more yield.
+
+> An important caveat here, full validator exits are rate limited by the protocol, so only six validators may exit per epoch (every 6.4 minutes, so 1350 per day, or only ~43,200 ETH per day out of over 10 million ETH staked). This rate limit adjusts depending on the total ETH staked and prevents a mass exodus of funds. Furthermore, it prevents a potential attacker from using their stake to commit a slashable offense and exiting their entire staking balance in the same epoch before the protocol can enforce the slashing penalty.
+
+> The APR is intentionally dynamic, allowing a market of stakers to balance how much they're willing to be paid to help secure the network. When withdrawals are enabled, if the rate is too low, then validators will exit at a rate limited by the protocol. Gradually this will raise the APR for everyone who remains, attracting new or returning stakers yet again.
+
+</details>
+
+<details>
+<summary>Staking APR is expected to triple after The Merge?</summary>
+
+
+</details>
+
+## Reference
+
+- [The Merge](https://ethereum.org/en/upgrades/merge/#main-content)
