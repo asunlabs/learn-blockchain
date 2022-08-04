@@ -59,4 +59,19 @@ contract MyGlobal {
     function getMsgSender() external view returns(address) {
         return msg.sender;
     }
+
+    /// @return block.basefee current block base feee. In Remix this is 1.
+    function getBaseFee() external view returns(uint256) {
+        return block.basefee;
+    }
+
+    /// @return block.chainid the current chain id. In Remix this is 1
+    function getChainId() external view returns(uint256) {
+        return block.chainid;
+    }
+
+    /// @return tx.gasprice the gas price of the transaction
+    function getTxGasPrice() external view returns(uint256) {
+        return tx.gasprice;
+    }
 }
