@@ -187,8 +187,139 @@ Not completing the first two items above items will result in your node being se
 <details>
 <summary>Staking APR is expected to triple after The Merge?</summary>
 
+> False. More up-to-date estimations predict closer to a 50% increase in APR post-merge, not a 200% increase.
+
+> The APR for stakers is expected to increase post-merge. To understand by how much, it is important to recognize where this increase in APR is coming from. This does not come from an increase in protocol ETH issuance (ETH issuance after The Merge is decreasing by ~90%), but is instead a reallocation of transaction fees that will start going to validators instead of miners.
+This will be a new separate source of revenue for validators when they propose blocks. As you can imagine, the amount of fees a validator receives is proportional to network activity at the time of their proposed block. The more fees being paid by users, the more fees validators will receive.
+
+> Looking at recent blockchain activity, approximately 10% of all gas fees being paid are currently going to miners in the form of a tip, while the rest is burnt. Outdated predictions estimated this percentage to be much higher, and was calculated when network usage was at all time highs. Extrapolating the 10% number to average recent network activity, it is estimated that the APR for staking will increase to ~7%, approximately 50% higher than the base issuance APR (as of June 2022).
+</details>
+
+<details>
+<summary>The Merge will result in downtime of the chain?</summary>
+
+> False. The Merge upgrade is designed to transition to proof-of-stake with zero downtime.
+> An immense amount of work has been put into making sure the transition to proof-of-stake does not disrupt the network or its users.
+The Merge is like changing an engine on a rocketship mid-flight and is designed to be performed without needing to pause anything during the switch. The Merge will be triggered by terminal total difficulty (TTD), which is a cumulative measure of the total mining power that has gone into building the chain. When the time comes, and this criterion is met, blocks will go from being built using proof-of-work in one block to being built by proof-of-stake in the next.
+
+Ethereum does not have downtime.
 
 </details>
+
+## What happened to 'Eth2'?
+
+> The term 'Eth2' has been deprecated as we approach The Merge. After merging 'Eth1' and 'Eth2' into a single chain, there will no longer be two distinct Ethereum networks; there will only be Ethereum.
+
+> To limit confusion, the community has updated these terms:
+
+1. 'Eth1' is now the 'execution layer', which handles transactions and execution.
+1. 'Eth2' is now the 'consensus layer', which handles proof-of-stake consensus.
+
+> These terminology updates only change naming conventions; this does not alter Ethereum's goals or roadmap.
+
+## Relationship between upgrades
+
+> The Ethereum upgrades are all somewhat interrelated. So let’s recap how The Merge relates to the other upgrades.
+
+### The Merge and the Beacon Chain
+
+> The Merge represents the formal adoption of the Beacon Chain as the new consensus layer to the current Mainnet execution layer. Once The Merge happens, validators will be assigned to secure Ethereum Mainnet, and mining on proof-of-work will no longer be a valid means of block production.
+
+> Blocks will instead be proposed by validating nodes that have ether staked for the right to participate in consensus. These upgrades set the stage for future scalability upgrades, including sharding.
+
+### The Merge and the Shanghai upgrade
+
+> In order to simplify and maximize focus on a successful transition to proof-of-stake, The Merge upgrade will not include certain anticipated features such as the ability to withdraw staked ETH. The Shanghai upgrade is planned to follow The Merge, which will enable the ability for stakers to withdraw.
+
+> Stay up-to-date with the Shanghai upgrade planning issue on GitHub, or the EF Research and Development Blog. For those curious, learn more about What Happens After The Merge, presented by Vitalik at the April 2021 ETHGlobal event.
+
+### The Merge and sharding
+
+> Originally, the plan was to work on sharding before The Merge to address scalability. However, with the boom of layer 2 scaling solutions, the priority has shifted to swapping proof-of-work to proof-of-stake via The Merge.
+
+> Plans for sharding are rapidly evolving, but given the rise and success of layer 2 technologies to scale transaction execution, sharding plans have shifted to finding the most optimal way to distribute the burden of storing compressed calldata from rollup contracts, allowing for exponential growth in network capacity. This would not be possible without first transitioning to proof-of-stake. 
+
+## How The Merge impacts ETH supply
+
+> We can break the supply of ETH into two primary forces: issuance, and burn.
+
+> The issuance of ETH is the process of creating ETH that did not previously exist. The burning of ETH is when existing ETH gets destroyed, removing it from circulation. The rate of issuance and burning gets calculated on several parameters, and the balance between them determines the resulting inflation/deflation rate of ether.
+
+<details> 
+<summary>ETH issuance tldr</summary>
+
+1. Mining rewards ~13,000 ETH/day pre-merge
+1. Staking rewards ~1,600 ETH/day pre-merge
+1. After The Merge, only the ~1,600 ETH per day will remain, dropping total new ETH issuance by ~90%
+1. The burn: At an average gas price of at least 16 gwei, at least 1,600 ETH is burned every day, which effectively brings net ETH inflation to zero or less post-merge.
+
+</details> 
+
+> How ETH gets issued will change at the time of The Merge. Currently, new ETH is issued from two sources: the execution layer (i.e. Mainnet) and the consensus layer (i.e. Beacon Chain). After The Merge, issuance from the execution layer will go to zero. Let's break this down.
+
+## Pre-merge
+
+### Execution layer issuance
+
+> Under proof-of-work, miners only interact with the execution layer and are rewarded with block rewards if they are the first miner to solve the next block. Since the Constantinople upgrade in 2019 this reward has been 2 ETH per block. Miners are also rewarded for publishing ommer blocks, which are valid blocks that don't end up in the longest/canonical chain. These rewards max out at 1.75 ETH per ommer, and are in addition to the reward issued from the canonical block. Mining is an economically intensive activity, requiring high levels of ETH issuance to sustain.
+
+### Consensus layer issuance
+
+> The Beacon Chain went live in 2020. Instead of miners, it is secured by validators using proof-of-stake. This chain was bootstrapped by Ethereum users depositing ETH one-way into a smart contract on Mainnet, which the Beacon Chain listens to, crediting the user with an equal amount on the new chain. Until The Merge happens, the Beacon Chain's validators are not processing transactions and are essentially coming to consensus on the state of the validator pool itself.
+
+> Validators on the Beacon Chain are rewarded with ETH for attesting to the state of the chain and proposing blocks. Rewards (or penalties) are calculated and distributed at each epoch (every 6.4 minutes) based on validator performance. The validator rewards are significantly less than the miner rewards issued on proof-of-work (2 ETH every ~13.5 seconds), as operating a validating node is not an economically intense activity and thus does not require or warrant as high a reward.
+
+## Pre-merge issuance breakdown
+
+> Total ETH supply: ~119,300,000 ETH (as of Q2 2022)
+
+> Execution layer issuance:
+
+1. Estimating at 2.08 ETH per 13.3 seconds*: ~4,930,000 ETH issued in a year
+1. Currently inflating at ~4.13% (4.93M per year / 119.3M total)
+1. *This includes the 2 ETH per canonical block, plus an average of 0.08 ETH over time from ommer blocks. Also uses 13.3 seconds, the baseline block time target without any influence from a difficulty bomb
+
+> Consensus layer issuance:
+
+1. Using 13,000,000 total ETH staked, the rate of ETH issuance is ~1600 ETH/day (See source)
+1. Results in ~584,000 ETH issued in a year
+1. Currently inflating at ~0.49% (584K per year / 119.3M total)
+
+> Total annual issuance rate: ~4.62% (4.13% + 0.49%)
+
+> ~89.4% of the issuance is going to miners on the execution layer (4.13 / 4.62 * 100)
+> ~10.6% is being issued to stakers on the consensus layer (0.49 / 4.62 * 100)
+
+## Post-merge
+
+### Execution layer issuance
+
+> Execution layer issuance after The Merge will be zero. Proof-of-work will no longer be valid under the rules of consensus. All execution layer activity will be included in "beacon blocks", which are published and attested to by proof-of-stake validators.
+
+### Consensus layer issuance
+
+> Consensus layer issuance will continue as before The Merge, with small rewards for validators who attest to and propose blocks. Validator rewards will continue to accrue to validator balances that are managed within the consensus layer. These are separate Ethereum accounts to the accounts we're used to on Mainnet, and until the Shanghai upgrade funds from validator accounts will not be withdrawable/transferrable. This means that although new ETH is still being issued, 100% of it will be locked from the market until this upgrade occurs. When the Shanghai upgrade is rolled out, this ETH will become available.
+
+> When validator withdrawals are enabled, stakers will be incentivized to remove their earnings/rewards (balance over 32 ETH) as these funds are otherwise not contributing to their stake weight (which maxes as 32).
+
+> Stakers may also choose to exit and withdraw their entire validator balance. To ensure Ethereum is stable, the number of validators leaving simultaneously is capped. Only six validators may exit in a given epoch (6.4 minute period) depending on the total ETH staked at the time. This decreases to as low as four as more validators withdraw to intentionally prevent large destabilizing amounts of staked ETH from leaving at once.
+
+## Post-merge inflation breakdown
+
+1. Total ETH supply: ~119,300,000 ETH (as of Q2 2022)
+1. Execution layer issuance: 0
+1. Consensus layer issuance: Same as above, ~0.49% annual issuance rate (with 13 million ETH staked)
+1. Total annual issuance rate: ~0.49%
+
+## 🔥The burn
+
+> The opposite force to ETH issuance is the rate at which ETH is burned. For a transaction to execute on Ethereum, a minimum fee (known as a base fee) must be paid, which fluctuates continuously depending on network activity. The fee is paid in ETH and is required for the transaction to be considered valid. This fee gets burned during the transaction process, removing it from circulation.
+
+> Fee burning went live with the London upgrade in August 2021, and will continue after the Merge.
+
+> On top of the fee burn implemented by the London upgrade, validators can also incur penalties for being offline, or worse, they can be slashed for breaking specific rules that threaten network security. These penalties result in a reduction of ETH from that validator's balance, which is not directly rewarded to any other account, effectively burning it from circulation.
+
+
 
 ## Reference
 
