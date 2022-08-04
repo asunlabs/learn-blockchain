@@ -49,4 +49,14 @@ contract MyGlobal {
     function getOneDays() external pure returns (uint256) {
         return 1 days;
     }
+
+    /// @return tx.origin account EOA
+    function getTxOrigin() external view returns(address) {
+        return tx.origin;
+    }
+
+    /// @return msg.sender accounts including EOA and CA
+    function getMsgSender() external view returns(address) {
+        return msg.sender;
+    }
 }
