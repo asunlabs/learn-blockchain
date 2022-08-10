@@ -47,4 +47,6 @@ console.log(parseInt(0x4c7b7ffcdeee)) // to number 84093311966958
 const bytes = ethers.utils.toUtf8Bytes('string to bytes')
 const bytesToHex = ethers.utils.hexlify(bytes)
 console.log(bytesToHex)
+const zeropadded = ethers.utils.hexZeroPad(ethers.utils.hexlify(5), 32)
+console.log(zeropadded, zeropadded.length) // 66
 // ============== string | bytes | hex conversion =============== //
