@@ -42,3 +42,9 @@ console.log(ethers.utils.hexlify(123)) // to hex. 0x7b
 console.log(parseInt(0x7b)) // to number. 123
 console.log(parseInt(0x4c7b7ffcdeee)) // to number 84093311966958
 // ============== hex | number conversion =============== //
+
+// ============== string | bytes | hex conversion =============== //
+const bytes = ethers.utils.toUtf8Bytes('string to bytes')
+const bytesToHex = ethers.utils.hexlify(bytes)
+console.log(bytesToHex)
+// ============== string | bytes | hex conversion =============== //
