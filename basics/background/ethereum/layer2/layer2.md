@@ -1,5 +1,41 @@
 # Learning layer 2 solution for scailability
 
+- Layer 2: **Ethereum for everyone**, Scaling Ethereum without compromising on security or decentralization.
+
+## What is layer 2? 
+
+> Layer 2 (L2) is a collective term to describe **a specific set of Ethereum scaling solutions**. A layer 2 is a _separate blockchain that extends Ethereum_ and inherits the security guarantees of Ethereum. Now let’s dig into it a bit more, and to do this we need to explain layer 1 (L1).
+
+<details>
+<summary>What is layer 1 then?</summary>
+
+> Layer 1 is the base blockchain. Ethereum and Bitcoin are both layer 1 blockchains because they are the underlying foundation that various layer 2 networks build on top of. Examples of layer 2 projects include "rollups" on Ethereum and the Lightning Network on top of Bitcoin. All user transaction activity on these layer 2 projects can ultimately settle back to the layer 1 blockchain.
+
+> Ethereum also functions as a data availability layer for layer 2s. **Layer 2 projects will post their transaction data onto Ethereum**, _relying on Ethereum for data availability_. This data can be used to get the state of the layer 2, or to dispute transactions on layer 2.
+
+> Ethereum as the layer 1 includes:
+
+1. A network of node operators to secure and validate the network
+1. A network of block producers
+1. The blockchain itself and the history of transaction data
+1. The consensus mechanism for the network
+
+## Why do we need layer 2?
+
+> Three desirable properties of a blockchain are that it is decentralized, secure, and scalable. The blockchain trilemma states that a simple blockchain architecture can only achieve two out of three. Want a secure and decentralized blockchain? You need to sacrifice scalability.
+
+> Ethereum has reached the network's current capacity with 1+ million transactions per day and high demand for each of these transactions. The success of Ethereum and the demand to use it has caused gas prices to rise substantially. Therefore the need for scaling solutions has increased in demand as well. This is where layer 2 networks come in.
+
+**Scalability**
+
+> The main goal of scalability is to increase transaction speed (faster finality) and transaction throughput (higher transactions per second) without sacrificing decentralization or security.
+
+> The Ethereum community has taken a strong stance that it would not throw out decentralization or security in order to scale. Until sharding, Ethereum Mainnet (layer 1) is only able to process roughly 15 transactions per second. When demand to use Ethereum is high, the network becomes congested, which increases transaction fees and prices out users who cannot afford those fees. That is where layer 2 comes in to scale Ethereum today.
+
+</details>
+
+## How does layer 2 work?
+
 > As we mentioned above, Layer 2 is a collective term for Ethereum scaling solutions that handle transactions off Ethereum layer 1 while still taking advantage of the robust decentralized security of Ethereum layer 1. A layer 2 is a separate blockchain that extends Ethereum. How does that work?
 
 > A layer 2 blockchain regularly communicates with Ethereum (by submitting bundles of transactions) in order to ensure it has similar security and decentralization guarantees. All this requires no changes to the layer 1 protocol (Ethereum). This lets layer 1 handle security, data availability, and decentralization, while layer 2s handles scaling. Layer 2s take the transactional burden away from the layer 1 and post finalized proofs back to the layer 1. By removing this transaction load from layer 1, the base layer becomes less congested, and everything becomes more scalable.
@@ -10,9 +46,17 @@
 
 > Rollups bundle (or ’roll up’) hundreds of transactions into a single transaction on layer 1. This distributes the L1 transaction fees across everyone in the rollup, making it cheaper for each user. Rollup transactions get executed outside of layer 1 but the transaction data gets posted to layer 1. By posting transaction data onto layer 1, rollups inherit the security of Ethereum. **There are two different approaches to rollups: optimistic and zero-knowledge** - they differ primarily on **how this transaction data is posted to L1**.
 
+**Optimistic rollups**
+
+> Optimistic rollups are 'optimistic' in the sense that transactions are assumed to be valid, but can be challenged if necessary. If an invalid transaction is suspected, a fault proof is ran to see if this has taken place.
+
+**Zero-knowledge rollups**
+
+> **Zero-knowledge rollups** use validity proofs where **transactions are computed off-chain**, and then compressed data is supplied to Ethereum Mainnet as a proof of their validity.
+
 ### Do your own research: risks of layer 2
 
-> Since layer 2 chains inherit security from Ethereum, in an ideal world, they are as safe as L1 Ethereum. However, many of the projects are still young and somewhat experimental. After years of research and development, many of the L2 technologies that will scale Ethereum launched in 2021. Many projects still have additional trust assumptions as they work to decentralize their networks. Always do your own research to decide if you're comfortable with any risks involved.
+> Since layer 2 chains inherit security from Ethereum, in an ideal world, they are as safe as L1 Ethereum. However, _many of the projects are still young and somewhat experimental_. After years of research and development, many of the L2 technologies that will scale Ethereum launched in 2021. Many projects still have additional trust assumptions as they work to decentralize their networks. Always do your own research to decide if you're comfortable with any risks involved.
 
 > For more information on the technology, risks, and trust assumptions of layer 2s, we recommend checking out L2BEAT, which provides a comprehensive risk assessment framework of each project.
 
