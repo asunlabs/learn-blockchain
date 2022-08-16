@@ -1,0 +1,18 @@
+[Unit]
+Description-Go Ethereum client node 1
+
+[Service]
+User=root
+Type=simple
+Restart-always
+ExecStart=/usr/bin/geth --networkid 99999 --datadir /opt/ethPoA/node1/data --port 30303 --http --ipcdisable --syncmode full --allow-insecure-unlock --http.corsdomain "*" --http.port 8545 --http.addr "172.31.90.37" --unlock 0xfd96F6a85b980E175f10b92Fc00dE7F6c89D691d --password /opt/ethPoA/node1/password.txt --mine --http.api personal,admin,db,eth,net,web3,miner,shh,txpool,debug,clique --ws  --ws.addr 0.0.0.0 --ws.port 8546 --ws.origins "*" --ws.api personal,admin,db,eth,net,web3,miner,shh,txpool,debug,clique --maxpeers 25 --miner.etherbase 0 --miner.gasprice 0 --miner.gaslimit 9999999
+
+[Install]
+WantedBy=default.target
+
+# system command
+
+sudo systemctl daemon-reload
+sudo systemctl enable geth.service
+sudo systemctl start geth.service
+sudo systemctl status geth.service # should be active, not failed
