@@ -10,13 +10,13 @@
 
 > In order to use Ethereum, it is first necessary to generate an EOA (hereafter, “account”). This tutorial will guide the user through creating an account, funding it with ether and sending some to another address.
 
-> Geth is an Ethereum client written in Go. This means running Geth turns a computer into an Ethereum node. Ethereum is a peer-to-peer network where information is shared directly between nodes rather than being managed by a central server. Nodes compete to generate new blocks of transactions to send to its peers because they are rewarded for doing so in Ethereum’s native token, ether (ETH). On receiving a new block, each node checks that it is valid and adds it to their database. The sequence of discrete blocks is called a “blockchain”. 
+> Geth is an Ethereum client written in Go. This means **running Geth turns a computer into an Ethereum node**. Ethereum is a peer-to-peer network where information is shared directly between nodes rather than being managed by a central server. Nodes compete to generate new blocks of transactions to send to its peers because they are rewarded for doing so in **Ethereum’s native token, ether (ETH)**. On receiving a new block, each node checks that it is valid and adds it to their database. The sequence of discrete blocks is called a “blockchain”. 
 
-> The information provided in each block is used by Geth to update its “state” - the ether balance of each account on Ethereum. There are two types of account: externally-owned accounts (EOAs) and contract accounts. Contract accounts execute contract code when they receive transactions. EOAs are accounts that users manage locally in order to sign and submit transactions. Each EOA is a public-private key pair, where the public key is used to derive a unique address for the user and the private key is used to protect the account and securely sign messages
+> The information provided in each block is used by Geth to update its “state” - the ether balance of each account on Ethereum. There are two types of account: externally-owned accounts (EOAs) and contract accounts. Contract accounts execute contract code when they receive transactions. EOAs are accounts that users manage locally in order to sign and submit transactions. **Each EOA is a public-private key pair**, where _the public key is used to derive a unique address for the user_ and the private key is used to protect the account and securely sign messages
 
-> There are several methods for generating accounts in Geth. This tutorial demonstrates how to generate accounts using Clef, as this is considered best practice, largely because it decouples the users’ key management from Geth, making it more modular and flexible. It can also be run from secure USB sticks or virtual machines, offering security benefits. For convenience, this tutorial will execute Clef on the same computer that will also run Geth, although more secure options are available (see here).
+> There are several methods for generating accounts in Geth. This tutorial demonstrates how to **generate accounts using Clef**, as this is _considered best practice_, largely because it decouples the users’ key management from Geth, making it more modular and flexible. It can also be run from secure USB sticks or virtual machines, offering security benefits. For convenience, this tutorial will execute Clef on the same computer that will also run Geth, although more secure options are available (see here).
 
-> An account is a pair of keys (public and private). Clef needs to know where to save these keys to so that they can be retrieved later. This information is passed to Clef as an argument. This is achieved using the following command:
+> _An account is a pair of keys (public and private)_. **Clef needs to know where to save these keys** to so that they can be retrieved later. This information is passed to Clef as an argument. This is achieved using the following command:
 
 ```shell
 $clef newaccount --keystore geth-tutorial/keystore
@@ -45,7 +45,7 @@ make all
 make clef
 ```
 
-> Once built, Clef must be initialized. This includes storing some data, some of which is sensitive (such as passwords, account data, signing rules etc). Initializing Clef takes that data and encrypts it using a user-defined password.
+> **Once built, Clef must be initialized**. This includes storing some data, some of which is sensitive (such as passwords, account data, signing rules etc). Initializing Clef takes that data and encrypts it using a user-defined password.
 
 ```sh
 # initiation
@@ -71,7 +71,7 @@ Once initiated with password, Clef generates a masterseed in local hard disk.
 
 > Clef communicates with the process that invoked the binary using stin/stout. The process invoking the binary is usually the **native console-based user interface (UI)** but there is also an API that enables communication with an external UI. This has to be enabled **using --stdio-ui at startup. This channel is considered TRUSTED** and is used to pass approvals and passwords between the user and Clef.
 
-> **Clef does not store keys** - the user is responsible for securely storing and backing up keyfiles. Clef does store account passwords in its encrypted vault if they are explicitly provided to Clef by the user to enable automatic account unlocking.
+> **Clef does not store keys** - the user is responsible for securely storing and backing up keyfiles. Clef does store _account passwords in its encrypted vault_ if they are explicitly provided to Clef by the user to enable automatic account unlocking.
 
 > The **external API** never handles any sensitive data directly, but it can be **used to request Clef to sign some data or a transaction**. It is the **internal API** that controls signing and triggers **requests for manual approval** (automatic approves actions that conform to attested rulesets) and passwords.
 
@@ -81,7 +81,7 @@ The general flow for **a basic transaction-signing operation using Clef** and an
 
 > In the case illustrated in the schematic above, Geth would be started with --signer <addr>:<port> and would relay requests to eth.sendTransaction. Text in mono font positioned along arrows shows the objects passed between each component.
 
-> Most users use Clef by manually approving transactions through the UI as in the schematic above, but it is also possible to configure Clef to sign transactions without always prompting the user. This requires defining the precise conditions under which a transaction will be signed. These conditions are known as Rules and they are small Javascript snippets that are attested by the user by injecting the snippet’s hash into Clef’s secure whitelist. 
+> **Most users use Clef by manually approving transactions through the UI** as in the schematic above, but it is also possible to configure Clef to sign transactions without always prompting the user. This requires defining the precise conditions under which a transaction will be signed. _These conditions are known as Rules_ and they are small Javascript snippets that are attested by the user by injecting the snippet’s hash into Clef’s secure whitelist. 
 
 > Clef is then started with the rule file, so that requests that satisfy the conditions in the whitelisted rule files are automatically signed. This is covered in detail on the Rules page.
 
