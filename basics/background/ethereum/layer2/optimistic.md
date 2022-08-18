@@ -6,4 +6,4 @@
 
 ## Reference
 
-- [OPTIMISTIC ROLLUPS](https://ethereum.org/en/developers/docs/scaling/optimistic-rollups/#top)
+- [Optimism official](https://www.optimism.io/)
