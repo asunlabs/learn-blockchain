@@ -1,5 +1,7 @@
 # Ethereum PoS update 
 
+- Ethereum massive updates: 1) PoS 2) Rollups/Layer2 3) Sharding
+
 > Soon, the current Ethereum Mainnet will merge with the Beacon Chain proof-of-stake system. This will mark the end of proof-of-work for Ethereum, and the full transition to proof-of-stake. This sets the stage for future scaling upgrades including sharding. The Merge will reduce Ethereum's energy consumption by ~99.95%.
 
 ## WHEN'S IT SHIPPING?
