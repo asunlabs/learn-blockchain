@@ -9,6 +9,10 @@ import (
 	. "github.com/onsi/gomega"
 )
 
+const (
+	temp = "test success"
+)
+
 func TestGinkgoApp(t *testing.T) {
 	RegisterFailHandler(Fail)
 	RunSpecs(t, "GinkgoApp Suite")
@@ -19,6 +23,13 @@ var _ = Describe("Person.IsChild()", func () {
 		log.Print("Logged!")
 	})
 
+	Describe("should run nested test suite", func ()  {
+		It("Should log test success", func ()  {
+			log.Printf("%s", temp)
+		})
+	})
+
+	// Context is an alias for Describe
 	XContext("when the person is a child", func ()  {
 		It("Returns true", func ()  {
 			person := ginkgo_app.Person{ Age: 10 }
@@ -43,7 +54,7 @@ var _ = Describe("Person.IsChild()", func () {
 	})
 
 	DescribeTable("is child table test", func (age int, expectedResponse bool)  {
-		p := ginkgo_app.Person{ Age: age}
+		p := ginkgo_app.Person{ Age: age }
 
 		Expect(p.IsChild()).To(Equal(expectedResponse))
 	}, 
