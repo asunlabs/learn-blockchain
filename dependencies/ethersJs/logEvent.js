@@ -17,17 +17,11 @@ const defaultProvider = new ethers.getDefaultProvider('ropsten', {
 const provider = new ethers.providers.InfuraProvider('ropsten')
 
 // Ethers.Signer is abstract. Should be implemented Wallet or Void Signer or JsonRPCprovider
-const walletSigner = new ethers.Wallet(
-    process.env.METAMASK_ROPSTEN_PRIVATE_KEY,
-    defaultProvider
-)
+const walletSigner = new ethers.Wallet(process.env.ACCOUNT_ROPSTEN_PRIVATE_KEY, defaultProvider)
 
 const myAddr = await walletSigner.getAddress()
 
-const myContract = new Contract(
-    process.env.CONTRACT_ADDRESS,
-    process.env.CONTRACT_ABI
-)
+const myContract = new Contract(process.env.CONTRACT_ADDRESS, process.env.CONTRACT_ABI)
 
 console.log(myAddr)
 
@@ -36,6 +30,7 @@ const oneAccountFromEtherscan = '0xf5de760f2e916647fd766b4ad9e85ff943ce3a2b'
 
 // contract.filters.EVENT_NAME
 const event = myContract.filters.Transfer()
+console.log({ event }) // an object holding address, topics
 
 // set event query filter
 const filter = {
@@ -45,7 +40,7 @@ const filter = {
 }
 
 // provider.getLogs(event filter) => fetch tx histories from the provider network
-console.log(await provider.getLogs(filter))
+// console.log(await provider.getLogs(filter))
 
 // console.log(filterFrom)
 // await myContract.queryFilter(filterFrom, '7', '14')
