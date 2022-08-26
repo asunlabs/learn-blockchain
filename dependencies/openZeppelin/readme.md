@@ -134,7 +134,6 @@ When you upgrade a proxy to a new version, **a new implementation contract is de
 
 </details>
 
-
 #### Proxy upgrade pattern
 
 ##### Upgrading via Proxy pattern
@@ -376,7 +375,7 @@ function _verify(bytes32 data, bytes memory signature, address account) internal
 
 ### Base64
 
-> Base64 util allows you to transform bytes32 data into its Base64 string representation. This is specially useful to build URL-safe tokenURIs for both ERC721 or ERC1155. This library provides a clever way to serve URL-safe Data URI compliant strings to serve on-chain data structures.
+> `Base64` util allows you to transform bytes32 data into its Base64 string representation. This is specially useful to `build URL-safe tokenURIs` for both `ERC721` or `ERC1155`. This library provides a clever way to serve URL-safe Data URI compliant strings to serve **on-chain data structures**.
 
 > Consider this is an example to send JSON Metadata through a Base64 Data URI using an ERC721:
 
@@ -395,6 +394,7 @@ contract My721Token is ERC721 {
 
     ...
 
+    // result: data:application/json;base64,eyJuYW1lIjogIk15NzIxVG9rZW4gIzU1In0=
     function tokenURI(uint256 tokenId)
         public
         pure
