@@ -370,6 +370,425 @@ if resp.StatusCode == fiber.StatusOK {
 }
 ```
 
+## Context
+
+> The Ctx struct represents the Context which hold the HTTP request and response. It has methods for the request query string, parameters, body, HTTP headers, and so on.
+
+### Accepts
+
+> Checks, if the specified extensions or content types are acceptable based on the request’s Accept HTTP header.
+
+```go
+// Accept: text/*, application/json
+
+app.Get("/", func(c *fiber.Ctx) error {
+  c.Accepts("html")             // "html"
+  c.Accepts("text/html")        // "text/html"
+  c.Accepts("json", "text")     // "json"
+  c.Accepts("application/json") // "application/json"
+  c.Accepts("image/png")        // ""
+  c.Accepts("png")              // ""
+  // ...
+})
+```
+
+### AllParams
+
+> Params is used to get all route parameters. Using Params method to get params.
+
+```go
+// GET http://example.com/user/fenny
+app.Get("/user/:name", func(c *fiber.Ctx) error {
+  c.AllParams() // "{"name": "fenny"}"
+
+  // ...
+})
+
+// GET http://example.com/user/fenny/123
+app.Get("/user/*", func(c *fiber.Ctx) error {
+  c.AllParams()  // "{"*1": "fenny/123"}"
+
+  // ...
+})
+```
+
+### App
+
+> Returns the \*App reference so you could easily access all application settings.
+
+```go
+app.Get("/stack", func(c *fiber.Ctx) error {
+  return c.JSON(c.App().Stack())
+})
+```
+
+### Append
+
+> Appends the specified value to the HTTP response header field. If the header is not already set, it creates the header with the specified value.
+
+```go
+app.Get("/", func(c *fiber.Ctx) error {
+  c.Append("Link", "http://google.com", "http://localhost")
+  // => Link: http://localhost, http://google.com
+
+  c.Append("Link", "Test")
+  // => Link: http://localhost, http://google.com, Test
+
+  // ...
+})
+```
+
+### Attachment
+
+> Sets the HTTP response Content-Disposition header field to attachment.
+
+```go
+app.Get("/", func(c *fiber.Ctx) error {
+  c.Attachment()
+  // => Content-Disposition: attachment
+
+  c.Attachment("./upload/images/logo.png")
+  // => Content-Disposition: attachment; filename="logo.png"
+  // => Content-Type: image/png
+
+  // ...
+})
+```
+
+### BaseURL
+
+> Returns the base URL (protocol + host) as a string.
+
+```go
+// GET https://example.com/page#chapter-1
+
+app.Get("/", func(c *fiber.Ctx) error {
+  c.BaseURL() // https://example.com
+  // ...
+})
+```
+
+### Body
+
+> Returns the raw request body.
+
+```go
+// curl -X POST http://localhost:8080 -d user=john
+
+app.Post("/", func(c *fiber.Ctx) error {
+  // Get raw body from POST request:
+  return c.Send(c.Body()) // []byte("user=john")
+})
+```
+
+### BodyParser
+
+> Binds the request body to a struct.
+
+> It is important to specify the correct struct tag based on the content type to be parsed. For example, if you want to parse a JSON body with a field called Pass, you would use a struct field of `json:"pass"`.
+
+- application/x-www-form-urlencoded: form struct tag
+- multipart/form-data: form struct tag
+- application/json: json struct tag
+- application/xml: xml struct tag
+- text/xml: xml
+
+```go
+// Field names should start with an uppercase letter
+type Person struct {
+    Name string `json:"name" xml:"name" form:"name"`
+    Pass string `json:"pass" xml:"pass" form:"pass"`
+}
+
+app.Post("/", func(c *fiber.Ctx) error {
+        p := new(Person)
+
+        if err := c.BodyParser(p); err != nil {
+            return err
+        }
+
+        log.Println(p.Name) // john
+        log.Println(p.Pass) // doe
+
+        // ...
+})
+
+// Run tests with the following curl commands
+
+// curl -X POST -H "Content-Type: application/json" --data "{\"name\":\"john\",\"pass\":\"doe\"}" localhost:3000
+
+// curl -X POST -H "Content-Type: application/xml" --data "<login><name>john</name><pass>doe</pass></login>" localhost:3000
+
+// curl -X POST -H "Content-Type: application/x-www-form-urlencoded" --data "name=john&pass=doe" localhost:3000
+
+// curl -X POST -F name=john -F pass=doe http://localhost:3000
+
+// curl -X POST "http://localhost:3000/?name=john&pass=doe"
+```
+
+### ClearCookie
+
+> Expire a client cookie (or all cookies if left empty)
+
+```go
+app.Get("/", func(c *fiber.Ctx) error {
+  // Clears all cookies:
+  c.ClearCookie()
+
+  // Expire specific cookie by name:
+  c.ClearCookie("user")
+
+  // Expire multiple cookies by names:
+  c.ClearCookie("token", "session", "track_id", "version")
+  // ...
+})
+```
+
+> Web browsers and other compliant clients will only clear the cookie if the given options are identical to those when creating the cookie, excluding expires and maxAge. ClearCookie will not set these values for you - a technique similar to the one shown below should be used to ensure your cookie is deleted.
+
+```go
+// set cookie
+app.Get("/set", func(c *fiber.Ctx) error {
+    c.Cookie(&fiber.Cookie{
+        Name:     "token",
+        Value:    "randomvalue",
+        Expires:  time.Now().Add(24 * time.Hour),
+        HTTPOnly: true,
+        SameSite: "lax",
+    })
+
+    // ...
+})
+
+// delete cookie
+app.Get("/delete", func(c *fiber.Ctx) error {
+    c.Cookie(&fiber.Cookie{
+        Name:     "token",
+        // Set expiry date to the past
+        Expires:  time.Now().Add(-(time.Hour * 2)),
+        HTTPOnly: true,
+        SameSite: "lax",
+    })
+
+    // ...
+})
+```
+
+### Cookie
+
+> Set cookie
+
+```go
+// Cookie type definition
+type Cookie struct {
+    Name        string    `json:"name"`
+    Value       string    `json:"value"`
+    Path        string    `json:"path"`
+    Domain      string    `json:"domain"`
+    MaxAge      int       `json:"max_age"`
+    Expires     time.Time `json:"expires"`
+    Secure      bool      `json:"secure"`
+    HTTPOnly    bool      `json:"http_only"`
+    SameSite    string    `json:"same_site"`
+    SessionOnly bool      `json:"session_only"`
+}
+
+// usage
+app.Get("/", func(c *fiber.Ctx) error {
+  // Create cookie
+  cookie := new(fiber.Cookie)
+  cookie.Name = "john"
+  cookie.Value = "doe"
+  cookie.Expires = time.Now().Add(24 * time.Hour)
+
+  // Set cookie
+  c.Cookie(cookie)
+  // ...
+})
+```
+
+### Cookies
+
+> Get cookie value by key, you could pass an optional default value that will be returned if the cookie key does not exist.
+
+```go
+app.Get("/", func(c *fiber.Ctx) error {
+  // Get cookie by key:
+  c.Cookies("name")         // "john"
+  c.Cookies("empty", "doe") // "doe"
+  // ...
+})
+```
+
+### Download
+
+> Transfers the file from path as an attachment. Typically, browsers will prompt the user to download. By default, the `Content-Disposition` header `filename=` parameter is the file path (this typically appears in the browser dialog).
+
+> Override this default with the filename parameter.
+
+```go
+app.Get("/", func(c *fiber.Ctx) error {
+  return c.Download("./files/report-12345.pdf");
+  // => Download report-12345.pdf
+
+  return c.Download("./files/report-12345.pdf", "report.pdf");
+  // => overriding the default with fimename report.pdf => Download report.pdf
+})
+```
+
+### Format
+
+> Performs content-negotiation on the Accept HTTP header. It uses Accepts to select a proper format.
+
+```go
+app.Get("/", func(c *fiber.Ctx) error {
+  // Accept: text/plain
+  c.Format("Hello, World!")
+  // => Hello, World!
+
+  // Accept: text/html
+  c.Format("Hello, World!")
+  // => <p>Hello, World!</p>
+
+  // Accept: application/json
+  c.Format("Hello, World!")
+  // => "Hello, World!"
+  // ..
+})
+```
+
+### FormFile
+
+> MultipartForm files can be retrieved by name, the first file from the given key is returned.
+
+```go
+app.Post("/", func(c *fiber.Ctx) error {
+  // Get first file from form field "document":
+  file, err := c.FormFile("document")
+
+  // Save file to root directory:
+  return c.SaveFile(file, fmt.Sprintf("./%s", file.Filename))
+})
+```
+
+### FormValue
+
+> Any form values can be retrieved by name, the first value from the given key is returned.
+
+```go
+app.Post("/", func(c *fiber.Ctx) error {
+  // Get first value from form field "name":
+  c.FormValue("name")
+  // => "john" or "" if not exist
+
+  // ..
+})
+```
+
+### JSONP
+
+> Sends a JSON response with JSONP support. This method is identical to JSON, except that it opts-in to JSONP callback support. By default, the callback name is simply callback.
+
+> Override this by passing a named string in the method.
+
+```go
+type SomeStruct struct {
+  name string
+  age  uint8
+}
+
+app.Get("/", func(c *fiber.Ctx) error {
+  // Create data struct:
+  data := SomeStruct{
+    name: "Grame",
+    age:  20,
+  }
+
+  return c.JSONP(data)
+  // => callback({"name": "Grame", "age": 20})
+
+  return c.JSONP(data, "customFunc")
+  // => customFunc({"name": "Grame", "age": 20})
+})
+```
+
+### Locals
+
+> A method that stores variables scoped to the request and, therefore, are available only to the routes that match the request. This is useful if you want to pass some specific data to the next middleware.
+
+```go
+// set a request-wide variable
+app.Use(func(c *fiber.Ctx) error {
+  c.Locals("user", "admin")
+  return c.Next()
+})
+
+// next middleware
+app.Get("/admin", func(c *fiber.Ctx) error {
+  if c.Locals("user") == "admin" {
+    return c.Status(fiber.StatusOK).SendString("Welcome, admin!")
+  }
+  return c.SendStatus(fiber.StatusForbidden)
+
+})
+```
+
+### MultipartForm
+
+> To access multipart form entries, you can parse the binary with MultipartForm(). This returns a map[string][]string, so given a key, the value will be a string slice.
+
+```go
+app.Post("/", func(c *fiber.Ctx) error {
+  // Parse the multipart form:
+  if form, err := c.MultipartForm(); err == nil {
+    // => *multipart.Form
+
+    if token := form.Value["token"]; len(token) > 0 {
+      // Get key value:
+      fmt.Println(token[0])
+    }
+
+    // Get all files from "documents" key:
+    files := form.File["documents"]
+    // => []*multipart.FileHeader
+
+    // Loop through files:
+    for _, file := range files {
+      fmt.Println(file.Filename, file.Size, file.Header["Content-Type"][0])
+      // => "tutorial.pdf" 360641 "application/pdf"
+
+      // Save the files to disk:
+      if err := c.SaveFile(file, fmt.Sprintf("./%s", file.Filename)); err != nil {
+        return err
+      }
+    }
+  }
+
+  return err
+})
+```
+
+### Next
+
+> When `Next` is called, it executes the next method in the stack that matches the current route. You can pass an error struct within the method that will end the chaining and call the error handler.
+
+```go
+app.Get("/", func(c *fiber.Ctx) error {
+  fmt.Println("1st route!")
+  return c.Next()
+})
+
+app.Get("*", func(c *fiber.Ctx) error {
+  fmt.Println("2nd route!")
+  return c.Next()
+})
+
+app.Get("/", func(c *fiber.Ctx) error {
+  fmt.Println("3rd route!")
+  return c.SendString("Hello, World!")
+})
+```
+
 ## Reference
 
 - [Fiber official docs](https://gofiber.io/#)
