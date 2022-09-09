@@ -33,6 +33,22 @@ It is Go, not _Golang_.
 
 ![go-module-semver](https://user-images.githubusercontent.com/83855174/189136245-f6fe0d0a-8c2a-4eb4-89e2-3a99d37b4153.png)
 
+## Formatting
+
+Set beow VS config in settings.json for auto-formatting.
+
+```json
+{
+  "files.autoSave": "onFocusChange",
+  "editor.formatOnSave": true,
+  "[go]": {
+    "editor.insertSpaces": true,
+    "editor.formatOnSave": true,
+    "editor.defaultFormatter": "golang.go"
+  }
+}
+```
+
 ## Reference
 
 - [Learning Golang: Dependencies, Modules and How to manage Packages](https://youtu.be/20sLKEpHvvk)
