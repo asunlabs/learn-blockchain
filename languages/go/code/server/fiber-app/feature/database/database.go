@@ -8,16 +8,22 @@ import (
 )
 
 var (
+	// assigned in line 26
 	Conn *gorm.DB
 )
 
 type BookSchema struct {
 	gorm.Model
 	Title string `json:"title"`
+	ID    uint   `json:"id"`
 }
 
 func Init() {
-	db, err := gorm.Open(sqlite.Open("./app.db"), &gorm.Config{})
+	// Connect database
+	db, err := gorm.Open(sqlite.Open("app.db"), &gorm.Config{})
+
+	// Go Database Connectivity API: init GDBC
+	Conn = db
 
 	if err != nil {
 		panic("failed to connect")
