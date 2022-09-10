@@ -18,6 +18,7 @@ func setRoute(app *fiber.App) {
 
 func main() {
 	app := fiber.New()
+
 	database.Init()
 
 	// * from v1.2.0, GORM supports connection pool, removing Close method.
@@ -42,11 +43,11 @@ func main() {
 		return c.JSON(jake)
 	})
 
-	// /:gender? => may or may not have the parameter
-	// app.Get("/:name/:age/:gender?", func(c *fiber.Ctx) error {
-	// 	msg := fmt.Sprintf("%s is %s, and %s", c.Params("name"), c.Params("age"), c.Params("gender"))
-	// 	return c.SendString(msg)
-	// })
+	// /:age? => may or may not have the parameter
+	app.Get("/:name/:age?/", func(c *fiber.Ctx) error {
+		msg := fmt.Sprintf("caller: %s is %s", c.Params("name"), c.Params("age"))
+		return c.SendString(msg)
+	})
 
 	setRoute(app)
 
