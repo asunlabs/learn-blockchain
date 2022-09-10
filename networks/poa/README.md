@@ -1,4 +1,4 @@
-# Learning How To Build Private Network 
+# Learning How To Build Private Network
 
 This is a lecture summary for [Udemy - Build your Private Ethereum Geth PoA Blockchain Network](https://www.udemy.com/course/geth-ethereum/).
 
@@ -29,13 +29,13 @@ This is a lecture summary for [Udemy - Build your Private Ethereum Geth PoA Bloc
 Install Ethereum in AWS EC2.
 
 ```sh
-# install ppa ethereum in AWS EC2 instance 
+# install ppa ethereum in AWS EC2 instance
 sudo add-apt-repository -y ppa:ethereum/ethereum
 
 # update
 sudo apt-get update
 
-# install ethereum 
+# install ethereum
 sudo apt-get install ethereum
 ```
 
@@ -45,16 +45,16 @@ Add security rules for network node.
 
 <img width="1523" alt="aws-ec2-inbound-rules-protocols" src="https://user-images.githubusercontent.com/83855174/185022441-f766a51e-f577-42fc-af2e-854c2073b48f.png">
 
-To check if the security rules are properly set, send a ping to the node's public IPv4 address. 
+To check if the security rules are properly set, send a ping to the node's public IPv4 address.
 
-```sh 
+```sh
 # send a request to the node. data should not be lost
 ping 18.233.1.175
 ```
 
 **Account creation**
 
-Use geth to create a node account. The account creation will require to set a password, which will be required later. The command will initialize a public key and secret key file in keystore directory. 
+Use geth to create a node account. The account creation will require to set a password, which will be required later. The command will initialize a public key and secret key file in keystore directory.
 
 ```sh
 # use clef later.
@@ -63,7 +63,7 @@ geth --datadir "./data" account new
 
 **Network configuration**
 
-A newly created network will start from a genesis block. The network is initialized with configuration like below. You will set a network genesis file with _puppeth_. 
+A newly created network will _start from a genesis block_. The network is initialized with configuration like below. You will set a network genesis file with _puppeth_.
 
 ```sh
 puppeth
@@ -72,9 +72,11 @@ puppeth
 <details>
 <summary>What is puppeth? </summary>
 
-> Puppeth is a CLI wizard that aids in creating a new Ethereum network down to the genesis, bootnodes, signers, ethstats, faucet, dashboard and more, without the hassle that it would normally take to configure all these services one by one. Puppeth uses ssh to dial into remote servers, and builds its network components out of docker containers using docker-compose. The user is guided through the process via a command line wizard that does the heavy lifting and topology configuration automatically behind the scenes.
+> `Puppeth` is a CLI wizard that aids in _creating a new Ethereum network_ down to the genesis, bootnodes, signers, ethstats, faucet, dashboard and more, without the hassle that it would normally take to configure all these services one by one.
 
-> Truth be told, if you’ve ever tried to set up your own private Ethereum network - whether for friendly fun, corporate work, or hackathon aid - you’ll certainly know the pain it takes to do so. Configuring a genesis block is one thing, but when you get to bootnodes, full nodes, miners and light clients, things start to wear thin fast… and we haven’t even talked about monitoring, explorers, faucets, wallets. It’s a mess.
+> Puppeth uses ssh to dial into remote servers, and builds its network components out of docker containers using docker-compose. The user is guided through the process via a command line wizard that does the heavy lifting and topology configuration automatically behind the scenes.
+
+> Truth be told, if you’ve ever tried to set up your own private Ethereum network - whether for friendly fun, corporate work, or hackathon aid - you’ll certainly know the pain it takes to do so. Configuring a genesis block is one thing, but when you get to _bootnodes, full nodes, miners and light clients_, things start to wear thin fast… and we haven’t even talked about _monitoring, explorers, faucets, wallets_. It’s a mess.
 
 > Geth 1.6 ships a new tool called puppeth, which aims to solve this particular pain point.
 
@@ -129,7 +131,7 @@ geth --datadir "./data" init ./test.json
 
 **Geth network launch**
 
-Run below command to launch a geth network. Note that you have to add a proper chain id, EC2 private address, node public address, and password.  
+Run below command to launch a geth network. Note that you have to add a proper chain id, EC2 private address, node public address, and password.
 
 ```sh
 geth --networkid 99999 --datadir ./data --port 30303 --http --ipcdisable --syncmode full --allow-insecure-unlock --http.corsdomain "*" --http.port 8545 --http.addr "EC2 private address here(e.g 172.31.94.134)" --unlock "node public address here(e.g. 0x7f88d0D01DE0F4FAD2E2008eB9B3507279C6CEA2)" --password "password path here(e.g ./password.txt)" --mine --http.api personal,admin,db,eth,net,web3,miner,shh,txpool,debug,clique --ws  --ws.addr 0.0.0.0 --ws.port 8546 --ws.origins "*" --ws.api personal,admin,db,eth,net,web3,miner,shh,txpool,debug,clique --maxpeers 25 --miner.etherbase 0 --miner.gasprice 0 --miner.gaslimit 9999999 console
@@ -139,23 +141,21 @@ Once the comand succeeded, a new private blockchain network is launched.
 
 **Attach RPC to network**
 
-Outside the blockchain network, client can access and interact with the network. This is done with geth attach command. 
+Outside the blockchain network, client can access and interact with the network. This is done with geth attach command.
 
 ```sh
 geth attach http://(EC2-public-address-here):(port-number-here)
 ```
 
-Once attached, clients will be able to interact with the newly created private network. 
+Once attached, clients will be able to interact with the newly created private network.
 
 **Account import to wallet**
 
-To import the created account from the private network to third party wallet like Metamask, the pirvate network should be added first. 
-
-Find a secret file created and create a JSON file with it. Use Metamask to import node account from the private network.
+To import the created account from the private network to third party wallet like Metamask, the pirvate network should be added first. Find a secret file created and create a JSON file with it. Use Metamask to import node account from the private network.
 
 <img width="268" alt="import-account-json" src="https://user-images.githubusercontent.com/83855174/185031422-aa59a0bb-5f07-4347-b458-37de82ae7042.png">
 
-Once the pre-funded account imported, the network is ready to deploy a smart contract. 
+Once the pre-funded account imported, the network is ready to deploy a smart contract.
 
 **Running network**
 
@@ -195,7 +195,7 @@ In configuring network, each node should be initialized in different EC2 instanc
 
 **Peer management**
 
-Once Geth is attached to one of the network nodes(EC2 instance, in this case), peers can be added to network through thje Geth Javascript console. 
+Once Geth is attached to one of the network nodes(EC2 instance, in this case), peers can be added to network through the Geth Javascript console.
 
 ```sh
 # Attach RPC to EC2
@@ -221,7 +221,7 @@ You can set static nodes instead of manually adding each peer.
 ]
 ```
 
-## Reference 
+## Reference
 
 - [Udemy - Build your Private Ethereum Geth PoA Blockchain Network](https://www.udemy.com/course/geth-ethereum/)
 - [Ethereum blog: Geth 1.6 – Puppeth Master](https://blog.ethereum.org/2017/04/14/geth-1-6-puppeth-master/)
