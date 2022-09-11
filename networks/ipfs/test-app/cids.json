@@ -1,0 +1,8 @@
+{
+  "Data": { "/": { "bytes": "CAE" } },
+  "Links": [
+    { "Hash": { "/": "QmbFMke1KXqnYyBBWxB74N4c5SBnJMVAiMNRcGu6x1AwQH" }, "Name": "ee.txt", "Tsize": 6 },
+    { "Hash": { "/": "QmTs4B68H6qTVLbVK4UaBZi2pDLj2bwT2iMx2VFJwPTCBt" }, "Name": "sample-image4.png", "Tsize": 11028 },
+    { "Hash": { "/": "QmbFMke1KXqnYyBBWxB74N4c5SBnJMVAiMNRcGu6x1AwQH" }, "Name": "ss.txt", "Tsize": 6 }
+  ]
+}
