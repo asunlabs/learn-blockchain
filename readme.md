@@ -5,7 +5,7 @@
 
 # @asunlabs/learn-blockchain
 
-**Migrated from [here](https://github.com/developerasun/myCodeBox-blockchain)**
+**Note: Migrated from myCodeBox-blokcchain repository, which is private repo now. The repo has over +150 research topics and they are being migrated to this repository.**
 
 This is a open code box for blockchain learning materials. Topics covered are as followings: blockchain background knowledge, libraries(ethers.js, web3.js, openzeppelin), framework(hardhat, truffle), IPFS, Defi, NFT. And many more to come.
 
@@ -14,9 +14,3 @@ Contribution is welcome. Contact me through below email or simply send a pull re
 ```
 nellow1102@gmail.com
 ```
-
-Highly recommends to check [myCodeBox-blockchain](https://github.com/developerasun/myCodeBox-blockchain/issues) for various research topics.
-
-**Useful resources**
-
-- [dockerhub: learn-blockchain](https://hub.docker.com/repository/docker/developerasun/learn-blockchain)
