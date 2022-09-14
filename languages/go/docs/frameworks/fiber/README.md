@@ -4,6 +4,17 @@
 
 > Fiber is a Go web framework built on top of Fasthttp, the fastest HTTP engine for Go. It's designed to ease things up for fast development with zero memory allocation and performance in mind.
 
+## Contents
+
+1. [Philosophy](#philosophy)
+1. [Zero allocation](#zero-allocation)
+1. [Basic routing](#basic-routing)
+1. [Static files](#static-files)
+1. [Fiber package](#fiber)
+1. [App instance](#app-instance)
+1. [Context](#context)
+1. []()
+
 ## Philosophy
 
 > New gophers that make the switch from Node.js to Go are dealing with a learning curve before they can start building their web applications or microservices. Fiber, as a web framework, was created with the idea of minimalism and follows the UNIX way, so that new gophers can quickly enter the world of Go with a warm and trusted welcome.
@@ -412,6 +423,38 @@ app.Get("/user/*", func(c *fiber.Ctx) error {
 })
 ```
 
+### ParamsParser
+
+> This method is similar to BodyParser, but for path parameters. It is important to use the `struct tag "params"`. For example, if you want to parse a path parameter with a field called Pass, you would use a struct field of `params:"pass"`
+
+```go
+// GET http://example.com/user/111
+app.Get("/user/:id", func(c *fiber.Ctx) error {
+  param := struct {ID uint `params:"id"`}{}
+
+  c.ParamsParser(&param) // "{"id": 111}"
+
+  // ...
+})
+```
+
+### Path
+
+> Contains the path part of the `request URL`. Optionally, you could override the path by passing a string. For internal redirects, you might want to call RestartRouting instead of Next.
+
+```go
+// GET http://example.com/users?sort=desc
+
+app.Get("/users", func(c *fiber.Ctx) error {
+  c.Path() // "/users"
+
+  c.Path("/john")
+  c.Path() // "/john"
+
+  // ...
+})
+```
+
 ### App
 
 > Returns the \*App reference so you could easily access all application settings.
@@ -787,6 +830,328 @@ app.Get("/", func(c *fiber.Ctx) error {
   fmt.Println("3rd route!")
   return c.SendString("Hello, World!")
 })
+```
+
+## Middleware
+
+> Middleware is a function chained in the HTTP request cycle with _access to the Context_ which it uses to perform a specific action, for example, logging every request or enabling CORS.
+
+### Basic Auth
+
+> Basic Authentication middleware for Fiber that provides an HTTP basic authentication. It calls the next handler for valid credentials and 401 Unauthorized or a custom response for missing or invalid credentials.
+
+**Examples**
+
+> Import the middleware package that is part of the Fiber web framework
+
+```go
+import (
+  "github.com/gofiber/fiber/v2"
+  "github.com/gofiber/fiber/v2/middleware/basicauth"
+)
+```
+
+> After you initiate your Fiber app, you can use the following possibilities:
+
+```go
+// Provide a minimal config
+app.Use(basicauth.New(basicauth.Config{
+    Users: map[string]string{
+        "john":  "doe",
+        "admin": "123456",
+    },
+}))
+
+// Or extend your config for customization
+app.Use(basicauth.New(basicauth.Config{
+    Users: map[string]string{
+        "john":  "doe",
+        "admin": "123456",
+    },
+    Realm: "Forbidden",
+    Authorizer: func(user, pass string) bool {
+        if user == "john" && pass == "doe" {
+            return true
+        }
+        if user == "admin" && pass == "123456" {
+            return true
+        }
+        return false
+    },
+    Unauthorized: func(c *fiber.Ctx) error {
+        return c.SendFile("./unauthorized.html")
+    },
+    ContextUsername: "_user",
+    ContextPassword: "_pass",
+}))
+```
+
+**Config**
+
+Default config is as follows.
+
+```go
+var ConfigDefault = Config{
+    Next:            nil,
+    Users:           map[string]string{},
+    Realm:           "Restricted",
+    Authorizer:      nil,
+    Unauthorized:    nil,
+    ContextUsername: "username",
+    ContextPassword: "password",
+}
+```
+
+```go
+// Config defines the config for middleware.
+type Config struct {
+    // Next defines a function to skip this middleware when returned true.
+    //
+    // Optional. Default: nil
+    Next func(c *fiber.Ctx) bool
+
+    // Users defines the allowed credentials
+    //
+    // Required. Default: map[string]string{}
+    Users map[string]string
+
+    // Realm is a string to define realm attribute of BasicAuth.
+    // the realm identifies the system to authenticate against
+    // and can be used by clients to save credentials
+    //
+    // Optional. Default: "Restricted".
+    Realm string
+
+    // Authorizer defines a function you can pass
+    // to check the credentials however you want.
+    // It will be called with a username and password
+    // and is expected to return true or false to indicate
+    // that the credentials were approved or not.
+    //
+    // Optional. Default: nil.
+    Authorizer func(string, string) bool
+
+    // Unauthorized defines the response body for unauthorized responses.
+    // By default it will return with a 401 Unauthorized and the correct WWW-Auth header
+    //
+    // Optional. Default: nil
+    Unauthorized fiber.Handler
+
+    // ContextUser is the key to store the username in Locals
+    //
+    // Optional. Default: "username"
+    ContextUsername string
+
+    // ContextPass is the key to store the password in Locals
+    //
+    // Optional. Default: "password"
+    ContextPassword string
+}
+```
+
+### CORS
+
+> CORS middleware for Fiber that can be used to enable `Cross-Origin Resource Sharing` with various options.
+
+> Import the middleware package that is part of the Fiber web framework.
+
+```go
+import (
+  "github.com/gofiber/fiber/v2"
+  "github.com/gofiber/fiber/v2/middleware/cors"
+)
+```
+
+> After you initiate your Fiber app, you can use the following possibilities:
+
+```go
+// Default config
+app.Use(cors.New())
+
+// Or extend your config for customization
+app.Use(cors.New(cors.Config{
+    AllowOrigins: "https://gofiber.io, https://gofiber.net",
+    AllowHeaders:  "Origin, Content-Type, Accept",
+}))
+```
+
+Default CORS config is as follows.
+
+```go
+var ConfigDefault = Config{
+    Next:             nil,
+    AllowOrigins:     "*",
+    AllowMethods:     "GET,POST,HEAD,PUT,DELETE,PATCH",
+    AllowHeaders:     "",
+    AllowCredentials: false,
+    ExposeHeaders:    "",
+    MaxAge:           0,
+}
+```
+
+**Config**
+
+```go
+// Config defines the config for middleware.
+type Config struct {
+    // Next defines a function to skip this middleware when returned true.
+    //
+    // Optional. Default: nil
+    Next func(c *fiber.Ctx) bool
+
+    // AllowOrigin defines a list of origins that may access the resource.
+    //
+    // Optional. Default value "*"
+    AllowOrigins string
+
+    // AllowMethods defines a list of methods allowed when accessing the resource.
+    // This is used in response to a preflight request.
+    //
+    // Optional. Default value "GET,POST,HEAD,PUT,DELETE,PATCH"
+    AllowMethods string
+
+    // AllowHeaders defines a list of request headers that can be used when
+    // making the actual request. This is in response to a preflight request.
+    //
+    // Optional. Default value "".
+    AllowHeaders string
+
+    // AllowCredentials indicates whether or not the response to the request
+    // can be exposed when the credentials flag is true. When used as part of
+    // a response to a preflight request, this indicates whether or not the
+    // actual request can be made using credentials.
+    //
+    // Optional. Default value false.
+    AllowCredentials bool
+
+    // ExposeHeaders defines a whitelist headers that clients are allowed to
+    // access.
+    //
+    // Optional. Default value "".
+    ExposeHeaders string
+
+    // MaxAge indicates how long (in seconds) the results of a preflight request
+    // can be cached.
+    //
+    // Optional. Default value 0.
+    MaxAge int
+}
+```
+
+### Cache
+
+> Cache middleware for Fiber designed to intercept responses and cache them. This middleware will cache the `Body`, `Content-Type` and `StatusCode` using the `c.Path()` as unique identifier. Special thanks to @codemicro for creating this middleware for Fiber core!
+
+**Examples**
+
+> Import the middleware package that is part of the Fiber web framework
+
+```go
+import (
+    "github.com/gofiber/fiber/v2"
+    "github.com/gofiber/fiber/v2/middleware/cache"
+)
+```
+
+> After you initiate your Fiber app, you can use the following possibilities:
+
+```go
+// Initialize default config
+app.Use(cache.New())
+
+// Or extend your config for customization
+app.Use(cache.New(cache.Config{
+    Next: func(c *fiber.Ctx) bool {
+        return c.Query("refresh") == "true"
+    },
+    Expiration: 30 * time.Minute,
+    CacheControl: true,
+}))
+```
+
+> Or you can custom key and expire time like this:
+
+```go
+app.Use(New(Config{
+    ExpirationGenerator: func(c *fiber.Ctx, cfg *Config) time.Duration {
+        newCacheTime, _ := strconv.Atoi(c.GetRespHeader("Cache-Time", "600"))
+        return time.Second * time.Duration(newCacheTime)
+    },
+    KeyGenerator: func(c *fiber.Ctx) string {
+        return c.Path()
+    }
+}))
+
+app.Get("/", func(c *fiber.Ctx) error {
+    c.Response().Header.Add("Cache-Time", "6000")
+    return c.SendString("hi")
+})
+```
+
+### Compress
+
+> Compression middleware for Fiber that will compress the response using `gzip`, `deflate` and `brotli` compression depending on the Accept-Encoding header.
+
+> Import the middleware package that is part of the Fiber web framework
+
+```go
+import (
+  "github.com/gofiber/fiber/v2"
+  "github.com/gofiber/fiber/v2/middleware/compress"
+)
+```
+
+> After you initiate your Fiber app, you can use the following possibilities:
+
+```go
+// Default middleware config
+app.Use(compress.New())
+
+// Provide a custom compression level
+app.Use(compress.New(compress.Config{
+    Level: compress.LevelBestSpeed, // 1
+}))
+
+// Skip middleware for specific routes
+app.Use(compress.New(compress.Config{
+  Next:  func(c *fiber.Ctx) bool {
+    return c.Path() == "/dont_compress"
+  },
+  Level: compress.LevelBestSpeed, // 1
+}))
+```
+
+**Config**
+
+```go
+// Config defines the config for middleware.
+type Config struct {
+    // Next defines a function to skip this middleware when returned true.
+    //
+    // Optional. Default: nil
+    Next func(c *fiber.Ctx) bool
+
+    // CompressLevel determines the compression algoritm
+    //
+    // Optional. Default: LevelDefault
+    // LevelDisabled:         -1
+    // LevelDefault:          0
+    // LevelBestSpeed:        1
+    // LevelBestCompression:  2
+    Level int
+}
+```
+
+**Constants**
+
+```go
+// Compression levels
+const (
+    LevelDisabled        = -1
+    LevelDefault         = 0
+    LevelBestSpeed       = 1
+    LevelBestCompression = 2
+)
 ```
 
 ## Reference
