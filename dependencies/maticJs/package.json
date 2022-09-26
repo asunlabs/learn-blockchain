@@ -1,0 +1,18 @@
+{
+  "name": "maticJs",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@maticnetwork/maticjs": "^3.2.5",
+    "@maticnetwork/maticjs-ethers": "^1.0.2",
+    "maticjs,": "link:@maticnetwork/maticjs,",
+    "maticjs-web3,": "link:@maticnetwork/maticjs-web3,"
+  }
+}
