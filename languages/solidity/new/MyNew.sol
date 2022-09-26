@@ -12,14 +12,16 @@ creation-dependencies are not possible.
 
 contract Data {
     uint16 public secret = 777;
-    function getSecret() external view returns(uint16) {
+
+    function getSecret() external view returns (uint16) {
         return secret;
     }
 }
 
-contract Receipt { 
-    uint public amount;
-    constructor(uint _amount) payable {
+contract Receipt {
+    uint256 public amount;
+
+    constructor(uint256 _amount) payable {
         amount = _amount;
     }
 }
@@ -27,13 +29,13 @@ contract Receipt {
 contract MyNew {
     // constructor can be omitted. optional.
 
-    function useDataContract() public returns(uint16){
+    function useDataContract() public returns (uint16) {
         Data data = new Data(); // create a contract instance.
         uint16 fromData = data.getSecret();
         return fromData;
     }
 
-    function sendEthWhileCreation() public returns(uint) {
+    function sendEthWhileCreation() public returns (uint256) {
         Receipt receipt = new Receipt(100);
         return receipt.amount();
     }

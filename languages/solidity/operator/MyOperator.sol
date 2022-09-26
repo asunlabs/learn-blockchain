@@ -8,22 +8,22 @@ pragma solidity ^0.8.0;
 /// @dev Check out emmets
 contract MyOperator {
     // state variables
-    uint8 a = 8; 
-    uint8 b = 16; 
+    uint8 a = 8;
+    uint8 b = 16;
     uint8 c = 33;
     uint8 newValue;
     uint8 getA = getter_a();
 
     /// @notice : read only function(functions with view)
-    function getter_a() public view returns (uint8){
+    function getter_a() public view returns (uint8) {
         return a;
     }
 
     /// @notice : assign new value
-    function MyCalc2() public  {
-        newValue = c % a ; // update the state variable to 1 
+    function MyCalc2() public {
+        newValue = c % a; // update the state variable to 1
 
-        // basic operations 
+        // basic operations
         b++;
         b += a;
     }
@@ -34,7 +34,7 @@ contract MyOperator {
         if (a < b) {
             result = true;
         }
-        if (a == b) { 
+        if (a == b) {
             result = true;
         }
         if (a != b) {
@@ -44,10 +44,9 @@ contract MyOperator {
             result = false;
         }
     }
-    
+
     function MyIternary() public view {
         uint8 testing = 0;
         newValue > 100 ? testing = 10 : testing = 0;
     }
-
 }
