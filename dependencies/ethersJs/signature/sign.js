@@ -13,9 +13,10 @@ const provider = new ethers.getDefaultProvider('goerli', {
 /**
  * * signer.signMessage
  * This returns a Promise which resolves to the Raw Signature of message(65 bytes v(1), r(32), s(32)).
- * A signed message is prefixd with "\x19Ethereum Signed Message:\n" and the length of the message,
+ * A signed message is prefixed with "\x19Ethereum Signed Message:\n" and the length of the message,
  * using the hashMessage method, so that it is EIP-191 compliant. If recovering the address in Solidity,
  * this prefix will be required to create a matching hash.
+ * Take a look at hashMessage.ts for more code detail.
  */
 
 /**
@@ -39,6 +40,7 @@ const _message = {
 // to verify signature on-chain
 const message = JSON.stringify(_message)
 
+/// @dev ethersjs adds '\x19Ethereum Signed Message:\n' prefix for message hashing.
 const hashed_message = ethers.utils.hashMessage('jake') // hashed data in Solidity
 
 console.log({ hashed_message })
