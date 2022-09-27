@@ -12,6 +12,15 @@ const (
 	_PORT = 3000
 )
 
+var (
+	mockResponse *Chair
+)
+
+type Chair struct {
+	Name   string `json:"name"`
+	Height uint   `json:"height"`
+}
+
 func setRoute(app *fiber.App) {
 	book.SetBookRouter(app)
 }
@@ -47,6 +56,13 @@ func main() {
 	app.Get("/:name/:age?/", func(c *fiber.Ctx) error {
 		msg := fmt.Sprintf("caller: %s is %s", c.Params("name"), c.Params("age"))
 		return c.SendString(msg)
+	})
+
+	app.Get("/chair", func(c *fiber.Ctx) error {
+		chair := Chair{Name: "jake's chair", Height: 100}
+
+		mockResponse = &chair
+		return c.JSON(chair)
 	})
 
 	setRoute(app)
