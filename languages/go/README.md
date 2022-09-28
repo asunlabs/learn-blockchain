@@ -4,6 +4,14 @@ It is Go, not _Golang_.
 
 > Go compiles quickly to machine code yet has the convenience of garbage collection and the power of run-time reflection. It's a fast, statically typed, compiled language that feels like a dynamically typed, interpreted language.
 
+## Contents
+
+1. [Dependencies, Modules and How to manage Packages](#dependencies-modules-and-how-to-manage-packages)
+1. [Formatting](#formatting)
+1. [Running test](#running-test)
+1. [Reference](#reference)
+1. []()
+
 ## Dependencies, Modules and How to manage Packages
 
 > A module is a collection of Go packages stored in a file tree with a `"go.mod"` file at its root. This file defines:
@@ -47,6 +55,84 @@ Set beow VS config in settings.json for auto-formatting.
     "editor.defaultFormatter": "golang.go"
   }
 }
+```
+
+Run golines to format go codes.
+
+```sh
+golines -w .
+```
+
+## Environment variables
+
+Run below command to list out go environment variables.
+
+```sh
+go env
+```
+
+Check output.
+
+```sh
+# GOROOT: where go is installed
+set GOROOT=C:\Program Files\Go
+
+# GOPATH: local go projects here
+set GOPATH=C:\Users\nello\go
+
+set GOBIN=C:\Users\nello\go\bin
+```
+
+## Running test
+
+Go support a built-in testing library.
+
+Create a simple function.
+
+```go
+func Add(left uint, right uint) uint {
+	return left + right
+}
+```
+
+Create a simple test.
+
+```go
+import (
+	"fmt"
+	"testing"
+)
+func TestAdd(t *testing.T) {
+	result := calc.Add(4, 7)
+
+	if result != 11 {
+		t.Error()
+	} else {
+		fmt.Println("TestAdd passed")
+	}
+
+	// sub tests with t.Run()
+	t.Run("Should be a five", func(t *testing.T){
+		num := 5
+		if num != 5 {
+			t.Fail()
+		}
+	})
+
+	t.Run("Should be true", func(t *testing.T){
+		isTrue := true
+		if isTrue != true {
+			t.Fail()
+		}
+	})
+}
+```
+
+Run test.
+
+```sh
+# v for verbose
+go test -v
 ```
 
 ## Reference
