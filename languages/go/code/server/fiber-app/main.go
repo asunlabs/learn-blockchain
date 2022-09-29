@@ -1,10 +1,12 @@
 package main
 
 import (
+	_ "fiber-app/docs"
 	"fiber-app/feature/database"
 	"fiber-app/feature/router"
 	"fmt"
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/swagger"
 	"log"
 )
 
@@ -25,6 +27,11 @@ func setRoute(app *fiber.App) {
 	book.SetBookRouter(app)
 }
 
+// @title Fiber Swagger Exercise
+// @version 1.1
+// @description testing api docs generation
+// @host localhost:3000
+// @BasePath /
 func main() {
 	app := fiber.New()
 
@@ -58,12 +65,15 @@ func main() {
 		return c.SendString(msg)
 	})
 
+	// @BathPath /chair
 	app.Get("/chair", func(c *fiber.Ctx) error {
 		chair := Chair{Name: "jake's chair", Height: 100}
 
 		mockResponse = &chair
 		return c.JSON(chair)
 	})
+
+	app.Get("/swagger/api/v1/*", swagger.HandlerDefault)
 
 	setRoute(app)
 
