@@ -135,6 +135,38 @@ Run test.
 go test -v
 ```
 
+## API docs
+
+To generate API docs, install swagger.
+
+```sh
+go get -u github.com/gofiber/swagger
+```
+
+And import.
+
+```go
+import 	"github.com/gofiber/swagger"
+```
+
+Leave comments like below.
+
+```go
+// @title Fiber Swagger Exercise
+// @version 1.1
+// @description testing api docs generation
+// @host localhost:3000
+// @BasePath /
+```
+
+And run below command to invoke swagger.
+
+```go
+swag init
+```
+
+Access the route you created.
+
 ## Reference
 
 - [Learning Golang: Dependencies, Modules and How to manage Packages](https://youtu.be/20sLKEpHvvk)
