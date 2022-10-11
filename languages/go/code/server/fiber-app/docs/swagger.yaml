@@ -1,0 +1,9 @@
+basePath: /
+host: localhost:3000
+info:
+  contact: {}
+  description: testing api docs generation
+  title: Fiber Swagger Exercise
+  version: "1.1"
+paths: {}
+swagger: "2.0"
