@@ -7,7 +7,10 @@ const unitAddedTimestamp = 1659163846 // block.timestamp + 1 minutes
 const date = new Date()
 
 console.log(date.toISOString())
-console.log(date.toLocaleString()) // local full time
+const yyyymmdd = date.toISOString().slice(0, 10)
+console.log({ yyyymmdd })
+
+console.log('local full time', date.toLocaleString()) // local full time
 console.log(date.toLocaleDateString())
 console.log(date.toLocaleTimeString())
 
