@@ -1,0 +1,294 @@
+# Learning OpenZeppelin Autotasks essentials
+
+> The Defender Autotasks service allows you to run code snippets on a regular basis, via `webhooks`, or in response to a transaction. Thanks to tight integration to `Relay` and `Sentinels`, you can use Autotasks to automate regular actions by easily sending transactions or reacting to events from your contracts.
+
+## Use cases
+
+> Use Autotasks whenever you have a recurrent action you need to run on your Contracts. Since you can run arbitrary code snippets, **you can trigger any transactions you need**, checking whatever conditions you want, and gathering info from any external APIs you may need.
+
+1. Check your balance in contracts and _sweep funds_ to a wallet upon reaching a threshold
+
+1. Update an on-chain oracle with information from an external API
+
+1. Monitor your contracts _to verify their state or check that an off-chain data source is in-sync_
+
+1. Poke your contracts to have them transition to a new state once a set of conditions is met
+
+1. Integrate with _external third party services via webhooks_
+
+1. Provide _gasless transactions_ for your dapp users via meta-transactions
+
+## Whats's in an Autotask? 
+
+> In a nutshell, **an Autotask is a snippet of javascript code invoked at a regular interval**, similar to a serverless function. And as a matter of fact, they are **implemented with Lambda functions**.
+
+> When you create an Autotask, you provide a javascript snippet, choose a trigger for it to run, and optionally link it to a Relayer. Defender currently supports two types of triggers:
+
+1. `Schedule`: Choose a frequency to execute your Autotask, and Defender will make sure to invoke your function at the specified interval. Note that the specified **interval is between two consecutive execution starts**, not between the end of an Autotask and the beginning of the next one. Alternatively, you can specify when the Autotask should run using cron expressions.
+
+1. Webhook: Defender will create a secret URL for your Autotask, and invoke it whenever an HTTP request is POSTed to that endpoint. You can regenerate this URL at any time. Defender will inject the HTTP request information into your Autotask, and return the Autotask run info along with any data you return from your code.
+
+> Autotasks can also be manually executed from the UI for quick testing. The last 30 Autotask runs will be shown in the Autotask view, allowing you to access the run logs (generated via console.log) for troubleshooting. Additionally, when an Autotask fails, Defender will send you a notification email.
+
+> Head over to the OpenZeppelin/defender-autotask-examples repository for a quick start with an out-of-the-box Autotask example!
+
+## Handler function 
+
+> The code snippet must export a handler async function that will be invoked on each execution of the Autotask. Given that each Autotask is powered by an `AWS Lambda` behind the scenes, keep in mind that the same rules apply when dealing with global variables.
+
+```js
+exports.handler = async function(event) {
+  // Your code here
+}
+```
+
+## Relayer integration
+
+> If you connect your Autotask to a Relayer, then Defender will automatically inject temporary credentials to access your Relayer from your Autotask. Simply pass the event object to the relayer client in place of the credentials:
+
+```js
+const { Relayer } = require('defender-relay-client');
+
+exports.handler = async function(event) {
+  const relayer = new Relayer(event);
+  // Use relayer for sending txs or querying the network...
+}
+```
+
+> This allows you to send transactions using your Relayer from your Autotasks without having to set up any API keys or secrets. Furthermore, you can also use the `Relayer JSON RPC endpoint` for making queries to any Ethereum network without having to configure API keys for external network providers.
+
+> If you want to use `ethers.js` for making queries or sending transactions via your Relayer, change the above to:
+
+```js
+const { DefenderRelaySigner, DefenderRelayProvider } = require('defender-relay-client/lib/ethers');
+const ethers = require('ethers');
+
+exports.handler = async function(event) {
+  const provider = new DefenderRelayProvider(event);
+  const signer = new DefenderRelaySigner(event, provider, { speed: 'fast' });
+  // Use provider and signer for querying or sending txs from ethers, for example...
+  const contract = new ethers.Contract(ADDRESS, ABI, signer);
+  await contract.ping();
+}
+```
+
+> And if you prefer using `web3.js`, then use the following snippet:
+
+```js
+const { DefenderRelayProvider } = require('defender-relay-client/lib/web3');
+const Web3 = require('web3');
+
+exports.handler = async function(event) {
+  const provider = new DefenderRelayProvider(event, { speed: 'fast' });
+  const web3 = new Web3(provider);
+  // Use web3 instance for querying or sending txs, for example...
+  const [from] = await web3.eth.getAccounts();
+  const contract = new web3.eth.Contract(ABI, ADDRESS, { from });
+  await contract.methods.ping().send();
+}
+```
+
+## Webhook invocations
+
+> When your Autotask is invoked via a webhook, you can access the HTTP request info as part of the event parameter injected in your handler. Likewise, your return value will be included in the result field of the HTTP response payload.
+
+```js
+exports.handler = async function(event) {
+  const {
+    body,    // Object with JSON-parsed POST body
+    headers, // Object with key-values from HTTP headers
+    queryParameters, // Object with key-values from query parameters
+  } = event.request;
+
+  return {
+    hello: 'world' // JSON-serialized and included in the `result` field of the response
+  };
+}
+```
+
+> At the moment only JSON payloads are supported, and only non-standard headers with the X- or Stripe- prefix are provided to the Autotask. If any of these limitations is an issue for your use case, please reach out to us.
+
+> A sample response from the webhook endpoint looks like the following, where status is one of success or error, encodedLogs has the base64-encoded logs from the run, and result has the JSON-encoded value returned from the execution.
+
+```json
+{
+  "autotaskRunId": "37a91eba-9a6a-4404-95e4-38d178ba69ed",
+  "autotaskId": "19ef0257-bba4-4723-a18f-67d96726213e",
+  "trigger": "webhook",
+  "status": "success",
+  "createdAt": "2021-02-23T18:49:14.812Z",
+  "encodedLogs": "U1RBU...cwkK",
+  "result": "{\"hello\":\"world\"}",
+  "requestId": "e7979150-44d3-4021-926c-9d9679788eb8"
+}
+```
+
+>  Autotasks that take longer than 25 seconds to complete will return a response with a pending state. Nevertheless, the autotask will continue to run in the background and eventually complete.
+
+> Autotask secrets are key-value case-sensitive pairs of strings, that can be accessed from any Autotask using the event.secrets object. You can define as many secrets as you need to be used by your Autotasks. Secrets are shared across all your Autotasks, and not specific to a single one.
+
+```js
+exports.handler = async function(event) {
+  const { mySecret, anApiKey } = event.secrets;
+}
+```
+
+> Secrets are encrypted and stored in a secure vault, only decrypted for injection in your autotasks runs. Once written, a secret can only be deleted or overwritten from the user interface, but not read.
+
+> An autotask may log the value of a secret, accidentally leaking it.
+
+> You can use secrets for storing secure keys to access external APIs, or any other secret value that you do not want to expose in the Autotask code.
+
+> While you can also use autotask secrets to store private keys for signing messages or transactions, we recommend you use a Relayer instead. Signing operations for relayers are executed within a secure vault, providing an extra level of security than loading the private key in an autotask run and signing there.
+
+## Key-value data store
+
+> The Autotask key-value data store allows you to persist simple data across Autotask runs and between different Autotasks. You can use it to store transaction identifiers, hashed user emails, or even small serialized objects.
+
+> Access to the key value store is managed through the defender-kvstore-client package:
+
+```js 
+const { KeyValueStoreClient } = require('defender-kvstore-client');
+
+exports.handler =  async function(event) {
+  const store = new KeyValueStoreClient(event);
+
+  await store.put('myKey', 'myValue');
+  const value = await store.get('myKey');
+  await store.del('myKey');
+}
+```
+
+> The key-value store allows you to get, put, and delete key-value pairs. Keys and values must be strings. Keys are limited to 1 KB and values to 300 KB. You can store up to 1000, 3000, or 10000 key-value pairs in total, depending if you are on the free, individual, or paid plan.
+
+> Keep in mind that the data store is shared across all autotasks. To isolate the records managed by each Autotask, consider prefixing the keys with a namespace unique to each Autotask.
+
+> Each item expires 90 days after its last update. If you need a long-lived data store, consider setting up an external database and use Autotask secrets to store the credentials for connecting to it.
+
+## Environment
+
+> Autotasks are executed in a node 12 runtime with 256mb RAM and a 5-minute timeout. Code snippets are restricted to be smaller than 5MB in size (after being compressed and base64-encoded). For ease-of-use, a set of common dependencies are pre-installed in the environment:
+
+```json
+"@datadog/datadog-api-client": "^1.0.0-beta.5",
+"@gnosis.pm/safe-core-sdk": "^0.3.1",
+"@gnosis.pm/safe-ethers-adapters": "^0.1.0-alpha.3",
+"axios": "0.21.2",
+"axios-retry": "3.1.9",
+"defender-admin-client": "1.25.0",
+"defender-autotask-client": "1.25.0",
+"defender-autotask-utils": "1.25.0",
+"defender-kvstore-client": "1.25.0",
+"defender-relay-client": "1.25.0",
+"defender-sentinel-client": "1.25.0",
+"ethers": "5.5.3",
+"fireblocks-sdk": "^1.12.0",
+"graphql": "^15.5.1",
+"graphql-request": "3.4.0",
+"web3": "1.3.6"
+```
+
+> If you need to use any dependency not listed above, you can either use a javascript module bundler such as rollup or webpack to include it in your code or just contact us to add it to the set of common dependencies. Refer to this sample project for more info.
+
+## Local development
+
+> To reproduce exactly the same Autotask environment in your development setup, you can use the following lockfile to install the same set of dependencies via yarn install --frozen-lockfile.
+
+> You can also use the following template for local development, which will run your Autotask code when invoked locally using node. It will load the Relayer credentials from environment variables when run locally, or use the injected credentials when run in Defender.
+
+```js
+const { Relayer } = require('defender-relay-client');
+
+// Entrypoint for the Autotask
+exports.handler = async function(event) {
+  const relayer = new Relayer(event);
+  // Use relayer for sending txs
+}
+
+// To run locally (this code will not be executed in Autotasks)
+if (require.main === module) {
+  const { API_KEY: apiKey, API_SECRET: apiSecret } = process.env;
+  exports.handler({ apiKey, apiSecret })
+    .then(() => process.exit(0))
+    .catch(error => { console.error(error); process.exit(1); });
+}
+```
+
+## Typescript support
+
+> We love typescript in the Defender development team, and we hope you do too! If you want to write your Autotasks in typescript, you’ll need to first compile them using tsc or via your bundler of choice, and then upload the resulting javascript code. Unfortunately, we don’t support coding directly in typescript in the Defender web interface.
+
+> All defender-client packages are coded in typescript and are packaged with their type declarations. You can also use the defender-autotask-utils package for type definitions for the event payload. 
+
+```ts
+import { AutotaskEvent, SentinelTriggerEvent } from 'defender-autotask-utils';
+
+// Example for an Autotask being triggered by a Sentinel
+export async function handler(event: AutotaskEvent) {
+  const match = event.request.body as SentinelTriggerEvent;
+  console.log(`Matched tx ${match.hash}`);
+}
+```
+
+## Updating code
+
+> You can edit an Autotask’s code via the Defender webapp, or programmatically via API using the defender-autotask-client npm package. The latter allows you to upload a code bundle with more than a single file:
+
+```sh
+echo API_KEY=$API_KEY >> .env
+echo API_SECRET=$API_SECRET >> .env
+defender-autotask update-code $AUTOTASK_ID ./path/to/code
+```
+
+> The code bundle must not exceed 5MB in size after being compressed and base64-encoded, and you must always include an index.js at the root of the zip file to act as the entrypoint.
+
+## A complete example
+
+> The following example uses `ethers.js` and the `Autotask-Relayer` integration to send a transaction calling execute on a given contract. Before sending the transaction, it checks a `canExecute` view function using a Defender provider, and validates if a parameter received via a webhook matches a local secret. If the transaction is sent, it returns the hash in the response, which is sent back to the webhook caller.
+
+```js
+const { ethers } = require("ethers");
+const { DefenderRelaySigner, DefenderRelayProvider } = require('defender-relay-client/lib/ethers');
+
+// Entrypoint for the Autotask
+exports.handler = async function(event) {
+  // Load value provided in the webhook payload (not available in schedule or sentinel invocations)
+  const { value } = event.request.body;
+
+  // Compare it with a local secret
+  if (value !== event.secrets.expectedValue) return;
+
+  // Initialize defender relayer provider and signer
+  const provider = new DefenderRelayProvider(event);
+  const signer = new DefenderRelaySigner(event, provider, { speed: 'fast' });
+
+  // Create contract instance from the signer and use it to send a tx
+  const contract = new ethers.Contract(ADDRESS, ABI, signer);
+  if (await contract.canExecute()) {
+    const tx = await contract.execute();
+    console.log(`Called execute in ${tx.hash}`);
+    return { tx: tx.hash };
+  }
+}
+
+// To run locally (this code will not be executed in Autotasks)
+if (require.main === module) {
+  const { API_KEY: apiKey, API_SECRET: apiSecret } = process.env;
+  exports.handler({ apiKey, apiSecret })
+    .then(() => process.exit(0))
+    .catch(error => { console.error(error); process.exit(1); });
+}
+```
+
+> We are not waiting for the transaction to be mined. The Defender Relayer will take care of monitoring the transaction and resubmitting if needed. The Autotask should just send the request to the Relayer and exit.
+
+## Security considerations
+
+> Each Autotask is implemented as a separate `AWS Lambda`, ensuring strong separation among each individual Autotask and across Defender tenants.
+
+> Autotasks are restricted via Identity and Access Management to have zero access to the Defender internal infrastructure. The only exception is that an Autotask may access its linked Relayer, which is negotiated via temporary credentials injected by the Defender Autotask service upon each execution. Still, **the Autotask can only call the Relayer exposed methods and has no direct access to the backing private key.**
+
+## Coming up...
+
+> We are working to better connect Autotasks with other parts of the system, such as the Notification channels used from Sentinels so you can send email or messages easily, or the Address Book used in Admin so you can rely on it as a registry. Let us know if you have anything in mind!
+
