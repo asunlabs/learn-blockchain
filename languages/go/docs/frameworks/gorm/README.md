@@ -785,6 +785,200 @@ db.Unscoped().Delete(&order)
 // DELETE FROM orders WHERE id=10;
 ```
 
+## Associations
+
+### Belongs To
+
+> A belongs to association sets up a `one-to-one` connection with another model, such that each instance of the declaring model “belongs to” one instance of the other model.
+
+> For example, if your application includes users and companies, and each user can be assigned to exactly one company, the following types represent that relationship. Notice here that, on the User object, there is both a CompanyID as well as a Company. By default, the CompanyID is implicitly used to create a foreign key relationship between the User and Company tables, and **thus must be included in the User struct in order to fill the Company inner struct**.
+
+```go
+// `User` belongs to `Company`, `CompanyID` is the foreign key
+type User struct {
+  gorm.Model
+  Name      string
+  CompanyID int
+  Company   Company
+}
+
+type Company struct {
+  ID   int
+  Name string
+}
+```
+
+#### Override Foreign Key
+
+> To define a belongs to relationship, the foreign key must exist, the default foreign key uses the owner’s type name plus its primary field name.
+
+> For the above example, to define the User model that belongs to Company, the foreign key should be CompanyID by convention
+
+> GORM provides a way to customize the foreign key, for example:
+
+```go
+type User struct {
+  gorm.Model
+  Name         string
+  CompanyRefer int
+  Company      Company `gorm:"foreignKey:CompanyRefer"`
+  // use CompanyRefer as foreign key
+}
+
+type Company struct {
+  ID   int
+  Name string
+}
+```
+
+#### Override References
+
+> For a belongs to relationship, GORM usually uses the owner’s primary field as the foreign key’s value, for the above example, it is Company‘s field ID.
+
+> When you assign a user to a company, GORM will save the company’s ID into the user’s CompanyID field.
+
+> You are able to change it with tag references, e.g:
+
+```go
+type User struct {
+  gorm.Model
+  Name      string
+  CompanyID string
+  Company   Company `gorm:"references:Code"` // use Code as references
+}
+
+type Company struct {
+  ID   int
+  Code string
+  Name string
+}
+```
+
+> GORM usually guess the relationship as has one if override foreign key name already exists in owner’s type, we need to specify references in the belongs to relationship.
+
+### Has One
+
+> A `has one` association sets up a `one-to-one` connection with another model, but with somewhat different semantics (and consequences). This association indicates that each instance of a model contains or possesses one instance of another model.
+
+> For example, if your application includes users and credit cards, and each user can only have one credit card.
+
+```go
+// # Declare
+// User has one CreditCard, UserID is the foreign key
+type User struct {
+  gorm.Model
+  CreditCard CreditCard
+}
+
+type CreditCard struct {
+  gorm.Model
+  Number string
+  UserID uint
+}
+
+// # Retrieve
+// Retrieve user list with eager loading credit card
+func GetAll(db *gorm.DB) ([]User, error) {
+  var users []User
+  err := db.Model(&User{}).Preload("CreditCard").Find(&users).Error
+  return users, err
+}
+```
+
+#### Override Foreign Key
+
+> For a has one relationship, a foreign key field must also exist, the owner will save the primary key of the model belongs to it into this field.
+
+> The field’s name is usually generated with has one model’s type plus its primary key, for the above example it is UserID.
+
+When you give a credit card to the user, it will save the User’s ID into its UserID field.
+
+If you want to use another field to save the relationship, you can change it with tag foreignKey, e.g:
+
+```go
+type User struct {
+  gorm.Model
+  CreditCard CreditCard `gorm:"foreignKey:UserName"`
+  // use UserName as foreign key
+}
+
+type CreditCard struct {
+  gorm.Model
+  Number   string
+  UserName string
+}
+```
+
+#### Override References
+
+> By default, the owned entity will save the has one model’s primary key into a foreign key, you could change to save another field’s value, like using Name for the below example.
+
+> You are able to change it with tag references, e.g:
+
+```go
+type User struct {
+  gorm.Model
+  Name       string     `gorm:"index"`
+  CreditCard CreditCard `gorm:"foreignkey:UserName;references:name"`
+}
+
+type CreditCard struct {
+  gorm.Model
+  Number   string
+  UserName string
+}
+```
+
+#### Polymorphism Association
+
+> GORM supports polymorphism association for has one and has many, it will save owned entity’s table name into polymorphic type’s field, primary key into the polymorphic field
+
+```go
+type Cat struct {
+  ID    int
+  Name  string
+  Toy   Toy `gorm:"polymorphic:Owner;"`
+}
+
+type Dog struct {
+  ID   int
+  Name string
+  Toy  Toy `gorm:"polymorphic:Owner;"`
+}
+
+type Toy struct {
+  ID        int
+  Name      string
+  OwnerID   int
+  OwnerType string
+}
+
+db.Create(&Dog{Name: "dog1", Toy: Toy{Name: "toy1"}})
+// INSERT INTO `dogs` (`name`) VALUES ("dog1")
+// INSERT INTO `toys` (`name`,`owner_id`,`owner_type`)
+```
+
+> You can change the polymorphic type value with tag polymorphicValue, for example:
+
+```go
+type Dog struct {
+  ID   int
+  Name string
+  Toy  Toy `gorm:"polymorphic:Owner;polymorphicValue:master"`
+}
+
+type Toy struct {
+  ID        int
+  Name      string
+  OwnerID   int
+  OwnerType string
+}
+
+db.Create(&Dog{Name: "dog1", Toy: Toy{Name: "toy1"}})
+// INSERT INTO `dogs` (`name`) VALUES ("dog1")
+// INSERT INTO `toys` (`name`,`owner_id`,`owner_type`) VALUES ("toy1","1","master")
+```
+
 ## Reference
 
 - [GORM official docs](https://gorm.io/docs/index.html)
