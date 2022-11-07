@@ -99,7 +99,21 @@ https://ipfs.io/ipns/k51qzi5uqu5dlvj2baxnqndepeb86cbk3ng7n3i46uzyxzyqj2xjonzllnv
 
 > Note IPNS resolution via an IPFS gateway is trusted (in the sense of trusting the gateway) which means you delegate IPNS resolution to the gateway without any means to verify the authenticity response you get, i.e the content path and signature of the IPNS record.
 
+Also take a look at below [github discussion](https://github.com/ipfs/kubo/issues/1678)
+
+> The fs:/ was droped as an idea. We switched to ipfs://, ipns:// and dweb:/
+Discussion from 2015-2017 was summarized in Background on Address Scheme discussions (dweb, ipfs:// and more) specs#152
+> We are working with browser vendors and standard bodies to whitelist mentioned protocols in HTML spec and other places
+The latest IPFS addressing standards can be found at ipfs/in-web-browsers/ADDRESSING.md
+
+Thus, base URI for ipns would be, 
+
+```
+ipns://CID
+```
+
 ## Reference
 
 - [IPFS: How to add a file to an existing folder?](https://stackoverflow.com/questions/39803954/ipfs-how-to-add-a-file-to-an-existing-folder)
 - [IPFS offical docs - IPNS in practice](https://docs.ipfs.tech/concepts/ipns/#ipns-in-practice)
+- [Standard URI for ipfs and ipns protocols (Discussion) #1678](https://github.com/ipfs/kubo/issues/1678)
