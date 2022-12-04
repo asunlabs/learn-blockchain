@@ -5,17 +5,17 @@ import { Contract } from 'ethers'
 
 dotenv.config({ path: '../.env' })
 
+/**
+ * contract being tested: https://mumbai.polygonscan.com/address/0x4B34585e661fDAB2653666a738824aCBB0d2Cb69
+ */
+
 const { TEST_MUMBAI_WSS } = process.env
 
 const require = createRequire(import.meta.url)
 
-// * ABI needs to be an implementation one
-const TEST_TOKEN_ABI = require('../abi/TEST_TOKEN_MUMBAI.json')
-
-// * WSS RPC URL is used for blockchain event listener
-const provider = new ethers.providers.WebSocketProvider(TEST_MUMBAI_WSS, 'maticmum')
-
 const TEST_TOKEN_ADDR = '0x4B34585e661fDAB2653666a738824aCBB0d2Cb69'
+const TEST_TOKEN_ABI = require('../abi/TEST_TOKEN_MUMBAI.json')
+const provider = new ethers.providers.WebSocketProvider(TEST_MUMBAI_WSS, 'maticmum')
 
 const contract = new Contract(TEST_TOKEN_ADDR, TEST_TOKEN_ABI, provider)
 
@@ -28,43 +28,53 @@ function mockResponse(txHash) {
     console.log('successful response for: ', txHash)
 }
 
+/**
+ *
+ * @param {string} txHash
+ * @param {number} chainId
+ */
+async function getRevertReason(txHash, chainId) {
+    const fetch = (await import('node-fetch')).default
+    const response = await fetch(`https://api.tenderly.co/api/v1/public-contract/${chainId}/tx/${txHash}`)
+
+    const errReason = (await response.json()).error_message
+    console.log({ errReason })
+}
+
 async function TransferListener() {
     // display start message in terminal for logging
-    console.log('Listener started')
+    console.log('TransferListener started')
 
-    // when tx happens, it logs the event
-    contract.on('Transfer', async (from, to, value, event) => {
+    // @dev contract.on only gets triggered for a successful transaction
+    contract.on('Transfer', async (...params) => {
         console.log('================== TransferListener triggered ==================')
-        console.log({
-            from,
-            to,
-            value,
-        })
+
+        // @dev params in event listener: (method param 1, 2, 3 ..., event object)
+        const event = params[params.length - 1]
+        console.log({ event })
 
         const txHashInEvent = event.transactionHash
-        console.log({ txHashInEvent })
+        console.log('tx hash in event: ', txHashInEvent)
 
-        const receipt = await provider.getTransactionReceipt(txHashInEvent)
-        console.log({ receipt })
-
-        const txHashInReceipt = receipt.transactionHash
-        console.log({ txHashInReceipt })
-
-        // txHashInEvent === txHashInReceipt => true
-        console.log(txHashInEvent === txHashInReceipt ? 'txHashInEvent === txHashInReceipt' : 'txHashInEvent !== txHashInReceipt')
-
-        console.log('is byzantium forked blockchain? ', receipt.byzantium)
-        console.log('is block mined?: ', receipt.status)
+        /**
+         * @dev txHashInEvent === txHashInReceipt => true
+         * @dev await event.getTransactionReceipt(txHashInEvent) === await provider.getTransactionReceipt(txHashInEvent)
+         */
+        // @dev
+        const receipt = await event.getTransactionReceipt(txHashInEvent)
+        // const receipt = await provider.getTransactionReceipt(txHashInEvent)
 
         const transactionStatus = {
             success: 1,
             failure: 0,
         }
 
+        /**
+         * @dev receipt.byzantium: should be true to have a receipt.status props
+         * @dev receipt.status: 1 for a successful transaction, 0 for a reverted transaction
+         */
         if (receipt.byzantium === true && receipt.status === transactionStatus.success) {
-            mockResponse(txHashInEvent)
-        } else {
-            throw new Error('No byzantimu-forked network or receipt failed')
+            mockResponse(receipt.transactionHash)
         }
     })
 }
