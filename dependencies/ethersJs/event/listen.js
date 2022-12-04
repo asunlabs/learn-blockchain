@@ -5,41 +5,68 @@ import { Contract } from 'ethers'
 
 dotenv.config({ path: '../.env' })
 
-const { TEST_ROPSTEN_WSS } = process.env
+const { TEST_MUMBAI_WSS } = process.env
 
 const require = createRequire(import.meta.url)
 
 // * ABI needs to be an implementation one
-const USDC_ROPSTEN_ABI = require('../abi/impl/USDC_ROPSTEN_IMPL.json')
+const TEST_TOKEN_ABI = require('../abi/TEST_TOKEN_MUMBAI.json')
 
 // * WSS RPC URL is used for blockchain event listener
-const provider = new ethers.providers.WebSocketProvider(TEST_ROPSTEN_WSS, 'ropsten')
-const USDC_ROPSTEN_ADDR = '0x07865c6E87B9F70255377e024ace6630C1Eaa37F'
+const provider = new ethers.providers.WebSocketProvider(TEST_MUMBAI_WSS, 'maticmum')
 
-const contract = new Contract(USDC_ROPSTEN_ADDR, USDC_ROPSTEN_ABI, provider)
+const TEST_TOKEN_ADDR = '0x4B34585e661fDAB2653666a738824aCBB0d2Cb69'
+
+const contract = new Contract(TEST_TOKEN_ADDR, TEST_TOKEN_ABI, provider)
+
+/**
+ * @dev jsdoc for type helper
+ * @param {string} txHash
+
+ */
+function mockResponse(txHash) {
+    console.log('successful response for: ', txHash)
+}
 
 async function TransferListener() {
-    console.log(contract.filters.Transfer())
+    // display start message in terminal for logging
+    console.log('Listener started')
 
     // when tx happens, it logs the event
-    contract.on('Transfer', (from, to, value, event) => {
-        let info = {
+    contract.on('Transfer', async (from, to, value, event) => {
+        console.log('================== TransferListener triggered ==================')
+        console.log({
             from,
             to,
-            value: ethers.utils.formatUnits(value, 6),
-            data: event,
-        }
-        console.log('================== TransferListener triggered ==================')
-        console.log(JSON.stringify(info, null, 4))
-    })
+            value,
+        })
 
-    const event = contract.filters.Transfer()
-    const filter = {
-        fromBlock: -3,
-        toBlock: 'latest',
-        topics: event.topics,
-    }
-    console.log(await provider.getLogs(filter))
+        const txHashInEvent = event.transactionHash
+        console.log({ txHashInEvent })
+
+        const receipt = await provider.getTransactionReceipt(txHashInEvent)
+        console.log({ receipt })
+
+        const txHashInReceipt = receipt.transactionHash
+        console.log({ txHashInReceipt })
+
+        // txHashInEvent === txHashInReceipt => true
+        console.log(txHashInEvent === txHashInReceipt ? 'txHashInEvent === txHashInReceipt' : 'txHashInEvent !== txHashInReceipt')
+
+        console.log('is byzantium forked blockchain? ', receipt.byzantium)
+        console.log('is block mined?: ', receipt.status)
+
+        const transactionStatus = {
+            success: 1,
+            failure: 0,
+        }
+
+        if (receipt.byzantium === true && receipt.status === transactionStatus.success) {
+            mockResponse(txHashInEvent)
+        } else {
+            throw new Error('No byzantimu-forked network or receipt failed')
+        }
+    })
 }
 
 TransferListener()
