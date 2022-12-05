@@ -41,7 +41,7 @@ async function getRevertReason(txHash, chainId) {
     console.log({ errReason })
 }
 
-async function TransferListener() {
+async function Listener() {
     // display start message in terminal for logging
     console.log('TransferListener started')
 
@@ -51,10 +51,10 @@ async function TransferListener() {
 
         // @dev params in event listener: (method param 1, 2, 3 ..., event object)
         const event = params[params.length - 1]
-        console.log({ event })
+        // console.log({ event })
 
         const txHashInEvent = event.transactionHash
-        console.log('tx hash in event: ', txHashInEvent)
+        // console.log('tx hash in event: ', txHashInEvent)
 
         /**
          * @dev txHashInEvent === txHashInReceipt => true
@@ -77,6 +77,19 @@ async function TransferListener() {
             mockResponse(receipt.transactionHash)
         }
     })
+
+    // @dev add second event listener
+    console.log('second event listener started')
+    contract.on('Approval', async (...params) => {
+        console.log('================== ApprovalListener triggered ==================')
+        const event = params[params.length - 1]
+        const transactionHash = event.transactionHash
+        console.log('TX hash for approval: ', transactionHash)
+
+        const receipt = await event.getTransactionReceipt(transactionHash)
+
+        console.log(receipt.status)
+    })
 }
 
-TransferListener()
+Listener()
