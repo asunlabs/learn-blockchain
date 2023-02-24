@@ -1,0 +1,25 @@
+{
+    "extends": "solhint:recommended",
+    "plugins": [],
+    "rules": {
+        "avoid-sha3": "error",
+        "avoid-suicide": "error",
+        "avoid-throw": "error",
+        "avoid-tx-origin": "warn",
+        "check-send-result": "error",
+        "multiple-sends": "error",
+        "no-complex-fallback": "error",
+        "no-inline-assembly": "warn",
+        "not-rely-on-block-hash": "error",
+        "not-rely-on-time": "warn",
+        "reentrancy": "error",
+        "state-visibility": "warn",
+        "max-states-count": "error",
+        "no-empty-blocks": "warn",
+        "no-unused-vars": "warn",
+        "payable-fallback": "error",
+        "reason-string": "off",
+        "const-name-snakecase": "warn",
+        "no-global-import": "off"
+    }
+  }

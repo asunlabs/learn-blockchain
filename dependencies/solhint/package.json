@@ -1,0 +1,16 @@
+{
+  "name": "solhint",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "lint": "solhint --config solhint.json ./solhintignore contracts/**/*.sol", 
+    "devDependencies": {
+      "solhint": "^3.4.0"
+    }
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
