@@ -1,0 +1,6 @@
+[submodule "submodule/my-assets"]
+	path = submodule/my-assets
+	url = https://github.com/asunlabs/my-assets.git
+[submodule "submodule/whiisker"]
+	path = submodule/whiisker
+	url = https://github.com/asunlabs/whiisker.git

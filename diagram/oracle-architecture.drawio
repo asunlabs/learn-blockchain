@@ -1,0 +1,171 @@
+<mxfile host="65bd71144e">
+    <diagram id="ANScE1iew6gfzzgFyla4" name="페이지-1">
+        <mxGraphModel dx="1247" dy="741" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="QHAVGuYCfTA9kuJMARri-1" value="Chainlink node" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+                    <mxGeometry x="600" y="380" width="120" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="QHAVGuYCfTA9kuJMARri-2" value="&lt;h1&gt;Chainlink Oracle network&lt;/h1&gt;&lt;div&gt;2022 copyright (c) developerasun, Jake Sung&lt;/div&gt;&lt;div&gt;ALL RIGHTS RESERVED&lt;/div&gt;" style="text;html=1;strokeColor=none;fillColor=none;spacing=5;spacingTop=-20;whiteSpace=wrap;overflow=hidden;rounded=0;" parent="1" vertex="1">
+                    <mxGeometry x="70" y="70" width="190" height="120" as="geometry"/>
+                </mxCell>
+                <mxCell id="QHAVGuYCfTA9kuJMARri-3" value="Adapter" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+                    <mxGeometry x="380" y="384" width="120" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="IJYa7HqQZNDSWnvP5w9T-2" value="LINK" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+                    <mxGeometry x="600" y="240" width="120" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="4" value="Initiator" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="80" y="380" width="120" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="5" value="Job" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="80" y="480" width="120" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="6" value="&lt;h1&gt;Data Feeds&lt;/h1&gt;&lt;div&gt;Get latest reald world asset price from chalink node network and integrate it with smart contract.&lt;/div&gt;" style="text;html=1;strokeColor=none;fillColor=none;spacing=5;spacingTop=-20;whiteSpace=wrap;overflow=hidden;rounded=0;" vertex="1" parent="1">
+                    <mxGeometry x="1240" y="80" width="190" height="120" as="geometry"/>
+                </mxCell>
+                <mxCell id="7" value="&lt;h1&gt;&lt;span&gt;Verifiable&amp;nbsp;&lt;/span&gt;Random Function&lt;/h1&gt;&lt;div&gt;Get mathmatically secured random number from Chainlink network.&amp;nbsp;&lt;/div&gt;" style="text;html=1;strokeColor=none;fillColor=none;spacing=5;spacingTop=-20;whiteSpace=wrap;overflow=hidden;rounded=0;" vertex="1" parent="1">
+                    <mxGeometry x="80" y="880" width="350" height="100" as="geometry"/>
+                </mxCell>
+                <mxCell id="27" value="" style="group" vertex="1" connectable="0" parent="1">
+                    <mxGeometry x="1248" y="208" width="1011" height="410.5" as="geometry"/>
+                </mxCell>
+                <mxCell id="QHAVGuYCfTA9kuJMARri-5" value="Smart contract" style="rounded=0;whiteSpace=wrap;html=1;" parent="27" vertex="1">
+                    <mxGeometry y="73.44590846047157" width="127.70526315789473" height="68.32177531206658" as="geometry"/>
+                </mxCell>
+                <mxCell id="IJYa7HqQZNDSWnvP5w9T-3" value="Aggregator" style="rounded=0;whiteSpace=wrap;html=1;" parent="27" vertex="1">
+                    <mxGeometry x="266.05263157894734" y="73.44590846047157" width="127.70526315789473" height="68.32177531206658" as="geometry"/>
+                </mxCell>
+                <mxCell id="22" style="edgeStyle=none;html=1;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" edge="1" parent="27" source="IJYa7HqQZNDSWnvP5w9T-4" target="QHAVGuYCfTA9kuJMARri-5">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="IJYa7HqQZNDSWnvP5w9T-4" value="Consumer.sol" style="rounded=0;whiteSpace=wrap;html=1;" parent="27" vertex="1">
+                    <mxGeometry y="205.53467406380028" width="127.70526315789473" height="68.32177531206658" as="geometry"/>
+                </mxCell>
+                <mxCell id="20" style="edgeStyle=none;html=1;entryX=1;entryY=0.5;entryDx=0;entryDy=0;exitX=0;exitY=0.5;exitDx=0;exitDy=0;" edge="1" parent="27" source="IJYa7HqQZNDSWnvP5w9T-5" target="IJYa7HqQZNDSWnvP5w9T-4">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="IJYa7HqQZNDSWnvP5w9T-5" value="Proxy" style="rounded=0;whiteSpace=wrap;html=1;" parent="27" vertex="1">
+                    <mxGeometry x="266.05263157894734" y="205.53467406380028" width="127.70526315789473" height="68.32177531206658" as="geometry"/>
+                </mxCell>
+                <mxCell id="19" style="edgeStyle=none;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="27" source="IJYa7HqQZNDSWnvP5w9T-3" target="IJYa7HqQZNDSWnvP5w9T-5">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="2" value="Front end / Backend" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="27">
+                    <mxGeometry y="342.17822468793344" width="127.70526315789473" height="68.32177531206658" as="geometry"/>
+                </mxCell>
+                <mxCell id="21" style="edgeStyle=none;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="27" source="IJYa7HqQZNDSWnvP5w9T-4" target="2">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="18" style="edgeStyle=none;html=1;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="27" source="15" target="IJYa7HqQZNDSWnvP5w9T-3">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="23" value="Chainlink network" style="swimlane;" vertex="1" parent="27">
+                    <mxGeometry x="819.4421052631578" width="191.5578947368421" height="204.96532593619972" as="geometry"/>
+                </mxCell>
+                <mxCell id="17" value="" style="group" vertex="1" connectable="0" parent="23">
+                    <mxGeometry x="21.28421052631579" y="69.46047156726769" width="148.98947368421054" height="99.06657420249654" as="geometry"/>
+                </mxCell>
+                <mxCell id="8" value="Chainlink node" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="17">
+                    <mxGeometry x="21.28421052631579" y="30.74479889042996" width="127.70526315789473" height="68.32177531206658" as="geometry"/>
+                </mxCell>
+                <mxCell id="10" value="Chainlink node" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="17">
+                    <mxGeometry x="10.642105263157895" y="15.941747572815533" width="127.70526315789473" height="68.32177531206658" as="geometry"/>
+                </mxCell>
+                <mxCell id="11" value="Chainlink node" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="17">
+                    <mxGeometry width="127.70526315789473" height="68.32177531206658" as="geometry"/>
+                </mxCell>
+                <mxCell id="25" value="" style="group" vertex="1" connectable="0" parent="27">
+                    <mxGeometry x="510.82105263157894" y="1.7080443828016643" width="191.5578947368421" height="204.96532593619972" as="geometry"/>
+                </mxCell>
+                <mxCell id="16" value="" style="group" vertex="1" connectable="0" parent="25">
+                    <mxGeometry x="21.28421052631579" y="70.5991678224688" width="148.98947368421054" height="92.23439667128987" as="geometry"/>
+                </mxCell>
+                <mxCell id="13" value="ETH / USD" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="16">
+                    <mxGeometry x="21.28421052631579" y="23.912621359223298" width="127.70526315789473" height="68.32177531206658" as="geometry"/>
+                </mxCell>
+                <mxCell id="14" value="ETH / USD" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="16">
+                    <mxGeometry x="10.642105263157895" y="11.386962552011095" width="127.70526315789473" height="68.32177531206658" as="geometry"/>
+                </mxCell>
+                <mxCell id="15" value="ETH / USD" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="16">
+                    <mxGeometry width="127.70526315789473" height="68.32177531206658" as="geometry"/>
+                </mxCell>
+                <mxCell id="24" value="Data Feeds" style="swimlane;" vertex="1" parent="25">
+                    <mxGeometry width="191.5578947368421" height="204.96532593619972" as="geometry"/>
+                </mxCell>
+                <mxCell id="26" style="edgeStyle=none;html=1;" edge="1" parent="27" source="11">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="702.3789473684211" y="104.19070735090152" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="28" value="&lt;h1&gt;&lt;span&gt;Web API connection&lt;/span&gt;&lt;/h1&gt;&lt;h1&gt;&lt;span style=&quot;font-size: 12px ; font-weight: 400&quot;&gt;Connect smart contract with web API and send HTTP requests.&lt;/span&gt;&lt;/h1&gt;" style="text;html=1;strokeColor=none;fillColor=none;spacing=5;spacingTop=-20;whiteSpace=wrap;overflow=hidden;rounded=0;" vertex="1" parent="1">
+                    <mxGeometry x="1210" y="880" width="370" height="170" as="geometry"/>
+                </mxCell>
+                <mxCell id="29" value="Oracle" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="700" y="1080" width="120" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="32" value="Request a VRF" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+                    <mxGeometry x="615" y="1342" width="90" height="36" as="geometry"/>
+                </mxCell>
+                <mxCell id="33" value="Receive a VRF" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+                    <mxGeometry x="615" y="1380" width="90" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="34" value="Subcription" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="20" y="1410" width="120" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="35" value="Subscription &lt;br&gt;manager" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="200" y="1410" width="120" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="36" value="Funds" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+                    <mxGeometry x="90" y="1520" width="90" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="40" value="LINK" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="200" y="1510" width="120" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="45" value="" style="group" vertex="1" connectable="0" parent="1">
+                    <mxGeometry x="909.9963157894736" y="1050.0004715672676" width="148.98947368421054" height="99.06657420249654" as="geometry"/>
+                </mxCell>
+                <mxCell id="46" value="Chainlink node" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="45">
+                    <mxGeometry x="21.28421052631579" y="30.74479889042996" width="127.70526315789473" height="68.32177531206658" as="geometry"/>
+                </mxCell>
+                <mxCell id="47" value="Chainlink node" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="45">
+                    <mxGeometry x="10.642105263157895" y="15.941747572815533" width="127.70526315789473" height="68.32177531206658" as="geometry"/>
+                </mxCell>
+                <mxCell id="48" value="Chainlink node" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="45">
+                    <mxGeometry width="127.70526315789473" height="68.32177531206658" as="geometry"/>
+                </mxCell>
+                <mxCell id="49" value="LINK" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="1240" y="1040" width="120" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="50" value="" style="group" vertex="1" connectable="0" parent="1">
+                    <mxGeometry x="1909.9963157894736" y="1050.0004715672676" width="148.98947368421054" height="99.06657420249654" as="geometry"/>
+                </mxCell>
+                <mxCell id="51" value="Chainlink node" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="50">
+                    <mxGeometry x="21.28421052631579" y="30.74479889042996" width="127.70526315789473" height="68.32177531206658" as="geometry"/>
+                </mxCell>
+                <mxCell id="52" value="Chainlink node" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="50">
+                    <mxGeometry x="10.642105263157895" y="15.941747572815533" width="127.70526315789473" height="68.32177531206658" as="geometry"/>
+                </mxCell>
+                <mxCell id="53" value="Chainlink node" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="50">
+                    <mxGeometry width="127.70526315789473" height="68.32177531206658" as="geometry"/>
+                </mxCell>
+                <mxCell id="54" value="1 API / 0.1 LINK" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+                    <mxGeometry x="1255" y="1104" width="90" height="36" as="geometry"/>
+                </mxCell>
+                <mxCell id="55" value="Smart contract" style="swimlane;" vertex="1" parent="1">
+                    <mxGeometry x="120" y="1050" width="470" height="210" as="geometry"/>
+                </mxCell>
+                <mxCell id="56" style="edgeStyle=none;html=1;entryX=0;entryY=0.25;entryDx=0;entryDy=0;exitX=1;exitY=0.25;exitDx=0;exitDy=0;" edge="1" parent="55" source="QHAVGuYCfTA9kuJMARri-4" target="38">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="QHAVGuYCfTA9kuJMARri-4" value="Consumer" style="rounded=0;whiteSpace=wrap;html=1;" parent="55" vertex="1">
+                    <mxGeometry x="33" y="87" width="120" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="38" value="Coordinator" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="55">
+                    <mxGeometry x="313" y="87" width="120" height="60" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>
